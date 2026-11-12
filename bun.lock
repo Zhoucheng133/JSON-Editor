@@ -4,6 +4,7 @@
     "": {
       "name": "json_editor",
       "dependencies": {
+        "@fortawesome/fontawesome-free": "^7.3.1",
         "@tailwindcss/vite": "^4.3.5",
         "@tauri-apps/api": "^2",
         "@tauri-apps/plugin-opener": "^2",
@@ -33,6 +34,8 @@
     "@emnapi/runtime": ["@emnapi/runtime@2.0.0-beta.2", "https://registry.npmmirror.com/@emnapi/runtime/-/runtime-2.0.0-beta.2.tgz", { "dependencies": { "tslib": "^2.4.0" } }, "sha512-JcrSPzPvZuNZvJqPTF9Fw25LbOJ8avzFVlaf2grmH4Cku0oGP47tRgqPZadcfj3YoZMHkFVnCYFbQM8I+i5QEw=="],
 
     "@emnapi/wasi-threads": ["@emnapi/wasi-threads@2.2.0", "https://registry.npmmirror.com/@emnapi/wasi-threads/-/wasi-threads-2.2.0.tgz", { "dependencies": { "tslib": "^2.4.0" } }, "sha512-JP7OYH38Q7+pyTAe14raZHLQIK7BDKbdwji+Xi3pcd/6QkJYQH3SX4wu6EplGrGJWRepoNzedfm0G3B9Z4e9Rw=="],
+
+    "@fortawesome/fontawesome-free": ["@fortawesome/fontawesome-free@7.3.1", "https://registry.npmmirror.com/@fortawesome/fontawesome-free/-/fontawesome-free-7.3.1.tgz", {}, "sha512-wmglKKPDIkgV3aWlZzWECCPoGIkYCulzBwxG9+w7rc5BGapZ6cPMpoPOT8k36J0Ni7PPX6c/rsoMWfS4d1MUMg=="],
 
     "@jridgewell/gen-mapping": ["@jridgewell/gen-mapping@0.3.13", "https://registry.npmmirror.com/@jridgewell/gen-mapping/-/gen-mapping-0.3.13.tgz", { "dependencies": { "@jridgewell/sourcemap-codec": "^1.5.0", "@jridgewell/trace-mapping": "^0.3.24" } }, "sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA=="],
 
