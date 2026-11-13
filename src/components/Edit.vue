@@ -2,20 +2,20 @@
   <div
     class="relative flex h-screen w-screen flex-col overflow-hidden bg-[#f6f7f9] text-slate-800"
   >
-    <!-- 固定工具栏（也是窗口拖拽区域） -->
+    <!-- 标题栏（窗口拖拽区域） -->
     <header
       data-tauri-drag-region="deep"
-      class="relative z-20 flex h-12 shrink-0 items-center gap-3 border-b border-slate-200 bg-white/90 backdrop-blur"
+      class="relative z-20 flex h-10 shrink-0 items-center gap-2 border-b border-slate-200 bg-white"
       :class="[leftPad, rightPad]"
     >
       <!-- 文件信息 -->
-      <div class="flex min-w-0 items-center gap-2">
+      <div class="flex min-w-0 flex-1 items-center gap-2">
         <div
-          class="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-emerald-50 text-emerald-600 ring-1 ring-inset ring-emerald-100"
+          class="grid h-5 w-5 shrink-0 place-items-center rounded-md bg-emerald-50 text-emerald-600 ring-1 ring-inset ring-emerald-100"
         >
-          <i class="fa-solid fa-file-code text-[11px]"></i>
+          <i class="fa-solid fa-file-code text-[10px]"></i>
         </div>
-        <span class="max-w-[180px] truncate text-[13px] font-medium text-slate-800">
+        <span class="max-w-[240px] shrink-0 truncate text-[12px] font-medium text-slate-800">
           {{ name || '未命名' }}
         </span>
         <span
@@ -24,15 +24,23 @@
           title="有未保存的修改"
         ></span>
         <span
-          class="hidden max-w-[220px] truncate font-mono text-[11px] text-slate-400 xl:block"
+          class="hidden min-w-0 truncate font-mono text-[11px] text-slate-400 lg:block"
           :title="path"
         >
           {{ path }}
         </span>
       </div>
 
+      <!-- 与窗口控制按钮之间的分隔线 -->
+      <div v-if="isTauri && !isMac" class="h-4 w-px shrink-0 bg-slate-200"></div>
+    </header>
+
+    <!-- 工具栏 -->
+    <div
+      class="relative z-10 flex h-12 shrink-0 items-center gap-3 border-b border-slate-200 bg-white/90 px-3 backdrop-blur"
+    >
       <!-- 编辑方式切换 -->
-      <div class="ml-auto flex shrink-0 items-center gap-0.5 rounded-lg bg-slate-100 p-0.5">
+      <div class="flex shrink-0 items-center gap-0.5 rounded-lg bg-slate-100 p-0.5">
         <button
           v-for="tab in tabs"
           :key="tab.id"
@@ -94,7 +102,7 @@
           <i class="fa-solid fa-xmark text-[14px]"></i>
         </button>
       </div>
-    </header>
+    </div>
 
     <!-- 编辑区 -->
     <main data-tauri-drag-region="false" class="relative min-h-0 flex-1">

@@ -80,6 +80,7 @@
                   <i class="fa-solid fa-plus text-[10px]"></i>
                 </button>
               </th>
+              <th v-else-if="model.kind === 'list'" class="w-10 border-b border-slate-200"></th>
             </tr>
           </thead>
 
@@ -101,32 +102,67 @@
                   @change="onKeyChange(cell.value, $event)"
                 />
 
-                <select
-                  v-else-if="cellType(cell.value) === 'boolean'"
-                  :value="String(cell.value)"
-                  class="w-full rounded border border-transparent bg-transparent px-1 py-1 font-mono text-[12px] text-violet-600 outline-none transition hover:border-slate-200 focus:border-emerald-400 focus:bg-white"
-                  @change="onValueChange(row.ref, cell.column, $event, 'boolean')"
-                >
-                  <option value="true">true</option>
-                  <option value="false">false</option>
-                </select>
+                <!-- 该行不存在这个字段 -->
+                <div v-else-if="cell.value === undefined" class="px-0.5">
+                  <button
+                    class="inline-flex items-center gap-1 rounded-md border border-dashed border-slate-300 px-1.5 py-0.5 text-[11px] text-slate-400 transition hover:border-emerald-400 hover:text-emerald-600"
+                    title="该字段在当前行不存在，点击添加"
+                    @click="addCell(row.ref, cell.column)"
+                  >
+                    <i class="fa-solid fa-plus text-[9px]"></i>
+                    无数据
+                  </button>
+                </div>
 
-                <input
-                  v-else
-                  :type="cellType(cell.value) === 'number' ? 'number' : 'text'"
-                  :value="cellText(cell.value)"
-                  :readonly="isComplex(cell.value)"
-                  :placeholder="cell.value === undefined ? '—' : cell.value === null ? 'null' : ''"
-                  class="w-full rounded border border-transparent bg-transparent px-1.5 py-1 font-mono text-[12px] outline-none transition hover:border-slate-200 focus:border-emerald-400 focus:bg-white"
-                  :class="[
-                    valueClass(cellType(cell.value)),
-                    isComplex(cell.value) ? 'text-slate-400' : '',
-                  ]"
-                  @change="onValueChange(row.ref, cell.column, $event, cellType(cell.value))"
-                />
+                <!-- 有数据的单元格 -->
+                <div v-else class="group/cell flex items-center gap-1">
+                  <button
+                    v-if="cellType(cell.value) === 'boolean'"
+                    class="min-w-0 flex-1 rounded border border-transparent px-1.5 py-1 text-left font-mono text-[12px] text-violet-600 transition hover:border-slate-200 hover:bg-white"
+                    title="点击切换 true / false"
+                    @click="toggleBoolean(row.ref, cell.column)"
+                  >
+                    {{ cell.value }}
+                  </button>
+                  <input
+                    v-else-if="!isComplex(cell.value)"
+                    :type="cellType(cell.value) === 'number' ? 'number' : 'text'"
+                    :value="cellText(cell.value)"
+                    :placeholder="cell.value === null ? 'null' : ''"
+                    class="min-w-0 flex-1 rounded border border-transparent bg-transparent px-1.5 py-1 font-mono text-[12px] outline-none transition hover:border-slate-200 focus:border-emerald-400 focus:bg-white"
+                    :class="valueClass(cellType(cell.value))"
+                    @change="onValueChange(row.ref, cell.column, $event)"
+                  />
+                  <span
+                    v-else
+                    class="min-w-0 flex-1 truncate rounded border border-transparent px-1.5 py-1 font-mono text-[12px] text-slate-400"
+                    :title="cellText(cell.value)"
+                  >
+                    {{ cellText(cell.value) }}
+                  </span>
+
+                  <DropSelect
+                    compact
+                    :model-value="cellType(cell.value)"
+                    :options="TYPE_OPTIONS"
+                    @update:model-value="onTypeChange(row.ref, cell.column, $event)"
+                  />
+
+                  <button
+                    v-if="canDeleteCell(row.ref)"
+                    class="grid h-5 w-5 shrink-0 place-items-center rounded text-slate-300 opacity-0 transition group-hover/cell:opacity-100 hover:bg-red-50 hover:text-red-500"
+                    title="删除该字段"
+                    @click="deleteCell(row.ref, cell.column)"
+                  >
+                    <i class="fa-solid fa-trash-can text-[10px]"></i>
+                  </button>
+                </div>
               </td>
 
-              <td v-if="model.kind === 'records'" class="w-10 border-b border-slate-100 px-1">
+              <td
+                v-if="model.kind !== 'entries'"
+                class="w-10 border-b border-slate-100 px-1"
+              >
                 <button
                   class="grid h-5 w-5 place-items-center rounded text-slate-400 opacity-0 transition group-hover:opacity-100 hover:bg-red-50 hover:text-red-500"
                   title="删除行"
@@ -139,7 +175,7 @@
 
             <tr v-if="model.rows.length === 0">
               <td
-                :colspan="model.head.length + 1"
+                :colspan="model.head.length + (model.kind === 'entries' ? 0 : 1)"
                 class="px-3 py-6 text-center text-xs text-slate-400"
               >
                 暂无数据
@@ -172,12 +208,15 @@ import { storeToRefs } from 'pinia';
 import useStore from '../../store/index.ts';
 import {
   cloneJson,
+  convertValue,
   jsonType,
   parseJson,
   stringifyJson,
+  TYPE_OPTIONS,
   uniqueKey,
   type JsonType,
 } from '../../utils/json.ts';
+import DropSelect from './DropSelect.vue';
 
 const emit = defineEmits<{ (e: 'request-raw'): void; (e: 'request-tree'): void }>();
 
@@ -318,14 +357,10 @@ function setValue(ref_: RowRef, column: string | number | undefined, value: unkn
   });
 }
 
-function onValueChange(
-  ref_: RowRef,
-  column: string | number | undefined,
-  event: Event,
-  type: JsonType | 'undefined',
-) {
-  const input = event.target as HTMLInputElement | HTMLSelectElement;
+function onValueChange(ref_: RowRef, column: string | number | undefined, event: Event) {
+  const input = event.target as HTMLInputElement;
   const raw = input.value;
+  const type = cellType(currentValue(ref_, column));
 
   let value: unknown;
   switch (type) {
@@ -338,17 +373,55 @@ function onValueChange(
       value = num;
       break;
     }
-    case 'boolean':
-      value = raw === 'true';
-      break;
     case 'null':
       value = raw.trim() === '' ? null : raw;
+      break;
+    case 'boolean':
+      value = raw === 'true';
       break;
     default:
       value = raw;
   }
 
   setValue(ref_, column, value);
+}
+
+/** 通过下拉菜单切换单元格类型 */
+function onTypeChange(ref_: RowRef, column: string | number | undefined, next: string) {
+  const value = currentValue(ref_, column);
+  setValue(ref_, column, convertValue(value, next as JsonType));
+}
+
+/** 布尔值点击翻转 */
+function toggleBoolean(ref_: RowRef, column: string | number | undefined) {
+  setValue(ref_, column, currentValue(ref_, column) !== true);
+}
+
+/** 列表视图里没有独立字段可删，直接删行 */
+function canDeleteCell(ref_: RowRef) {
+  return ref_.kind !== 'list';
+}
+
+/** 删除字段（键值对），删除后该单元格会显示「无数据」标记 */
+function deleteCell(ref_: RowRef, column: string | number | undefined) {
+  withRoot((root) => {
+    if (ref_.kind === 'record') {
+      const row = root[ref_.index];
+      if (row !== null && typeof row === 'object') delete row[column as string];
+    } else if (ref_.kind === 'entry') {
+      delete root[ref_.key];
+    }
+  });
+}
+
+/** 为缺失的字段补上默认值 */
+function addCell(ref_: RowRef, column: string | number | undefined) {
+  withRoot((root) => {
+    if (ref_.kind === 'record') {
+      const row = root[ref_.index];
+      if (row !== null && typeof row === 'object') row[column as string] = '';
+    }
+  });
 }
 
 function onKeyChange(oldKey: unknown, event: Event) {
@@ -407,7 +480,7 @@ function addColumn() {
     const key = uniqueKey(columns, '新字段');
     for (const row of root) {
       if (row === null || typeof row !== 'object') continue;
-      row[key] = null;
+      row[key] = '';
     }
   });
 }

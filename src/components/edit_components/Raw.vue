@@ -8,17 +8,26 @@
         </div>
       </div>
 
-      <textarea
-        ref="textareaEl"
-        v-model="text"
-        spellcheck="false"
-        wrap="off"
-        class="min-w-0 flex-1 resize-none bg-transparent p-3 font-mono text-[13px] leading-6 text-slate-700 outline-none"
-        placeholder="在这里直接编辑 JSON 文本…"
-        @input="scheduleCommit"
-        @blur="flush"
-        @scroll="syncScroll"
-      ></textarea>
+      <div class="relative min-w-0 flex-1">
+        <!-- 高亮层：与文本框严格对齐，滚动同步 -->
+        <pre
+          ref="preEl"
+          aria-hidden="true"
+          class="pointer-events-none absolute inset-0 m-0 overflow-hidden p-3 font-mono text-[13px] leading-6 whitespace-pre"
+        ><code v-html="highlighted"></code></pre>
+
+        <textarea
+          ref="textareaEl"
+          v-model="text"
+          spellcheck="false"
+          wrap="off"
+          class="relative h-full w-full resize-none bg-transparent p-3 font-mono text-[13px] leading-6 text-transparent caret-slate-800 outline-none selection:bg-emerald-300/40 placeholder:text-slate-300"
+          placeholder="在这里直接编辑 JSON 文本…"
+          @input="scheduleCommit"
+          @blur="flush"
+          @scroll="syncScroll"
+        ></textarea>
+      </div>
     </div>
 
     <!-- 状态栏 -->
@@ -37,20 +46,23 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import useStore from '../../store/index.ts';
-import { parseJson } from '../../utils/json.ts';
+import { highlightJson, parseJson } from '../../utils/json.ts';
 
 const store = useStore();
 const { content } = storeToRefs(store);
 
 const text = ref(content.value);
 const gutterEl = ref<HTMLElement | null>(null);
+const preEl = ref<HTMLElement | null>(null);
 const textareaEl = ref<HTMLTextAreaElement | null>(null);
 
 const status = computed(() => parseJson(text.value));
 const lineCount = computed(() => text.value.split('\n').length);
+/** 末尾补一个换行，让高亮层与文本框的行数完全一致 */
+const highlighted = computed(() => `${highlightJson(text.value)}\n`);
 
 let timer: ReturnType<typeof setTimeout> | undefined;
 
@@ -58,6 +70,8 @@ let timer: ReturnType<typeof setTimeout> | undefined;
 watch(content, (value) => {
   if (value !== text.value) text.value = value;
 });
+
+watch(highlighted, () => nextTick(syncScroll));
 
 function scheduleCommit() {
   if (timer) clearTimeout(timer);
@@ -70,10 +84,21 @@ function flush() {
 }
 
 function syncScroll() {
-  if (gutterEl.value && textareaEl.value) {
-    gutterEl.value.style.transform = `translateY(${-textareaEl.value.scrollTop}px)`;
+  const area = textareaEl.value;
+  if (!area) return;
+  if (preEl.value) {
+    preEl.value.scrollTop = area.scrollTop;
+    preEl.value.scrollLeft = area.scrollLeft;
+  }
+  if (gutterEl.value) {
+    gutterEl.value.style.transform = `translateY(${-area.scrollTop}px)`;
   }
 }
+
+onMounted(() => {
+  textareaEl.value?.focus();
+  syncScroll();
+});
 
 onBeforeUnmount(flush);
 </script>

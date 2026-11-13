@@ -65,24 +65,17 @@
 
           <!-- 原始值 -->
           <template v-else-if="isEditing(row, 'value')">
-            <select
-              v-model="editType"
-              class="rounded border border-slate-200 bg-white px-1 py-px text-[11px] text-slate-500 outline-none"
-            >
-              <option value="string">字符串</option>
-              <option value="number">数字</option>
-              <option value="boolean">布尔</option>
-              <option value="null">null</option>
-            </select>
-            <select
+            <DropSelect
+              :model-value="editType"
+              :options="TYPE_OPTIONS"
+              @update:model-value="setEditType($event as JsonType)"
+            />
+            <DropSelect
               v-if="editType === 'boolean'"
-              v-model="editText"
-              v-focus
-              class="rounded border border-emerald-400 bg-white px-1 py-px text-slate-700 outline-none"
-            >
-              <option value="true">true</option>
-              <option value="false">false</option>
-            </select>
+              :model-value="editText"
+              :options="BOOL_OPTIONS"
+              @update:model-value="editText = $event"
+            />
             <input
               v-else-if="editType === 'null'"
               class="w-16 rounded border border-slate-200 bg-slate-50 px-1 py-px text-slate-400 outline-none"
@@ -175,6 +168,7 @@ import { computed, ref } from 'vue';
 import { storeToRefs } from 'pinia';
 import useStore from '../../store/index.ts';
 import {
+  BOOL_OPTIONS,
   cloneJson,
   getAt,
   jsonType,
@@ -182,9 +176,11 @@ import {
   parseJson,
   pathKey,
   stringifyJson,
+  TYPE_OPTIONS,
   type JsonPath,
   type JsonType,
 } from '../../utils/json.ts';
+import DropSelect from './DropSelect.vue';
 
 const emit = defineEmits<{ (e: 'request-raw'): void }>();
 
@@ -311,6 +307,17 @@ function startEditKey(row: Row) {
 
 function cancelEdit() {
   editId.value = null;
+}
+
+/** 切换正在编辑的值类型，并把编辑框内容调整成合适的初始值 */
+function setEditType(type: JsonType) {
+  if (type === editType.value) return;
+  if (type === 'boolean') {
+    editText.value = editText.value === 'false' ? 'false' : 'true';
+  } else if (editType.value === 'null') {
+    editText.value = '';
+  }
+  editType.value = type;
 }
 
 /* ---------------- 修改数据 ---------------- */
