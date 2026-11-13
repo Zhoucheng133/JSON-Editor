@@ -33,9 +33,10 @@
 
     <template v-else>
       <div class="min-h-0 flex-1 overflow-auto">
-        <table class="w-full border-collapse text-[13px]">
+        <table ref="tableRef" class="w-full border-collapse text-[13px]">
           <thead class="sticky top-0 z-10 bg-slate-50">
             <tr>
+              <th class="w-6 border-b border-slate-200"></th>
               <th
                 v-for="(head, index) in model.head"
                 :key="index"
@@ -84,8 +85,23 @@
             </tr>
           </thead>
 
-          <tbody>
-            <tr v-for="(row, rowIndex) in model.rows" :key="rowIndex" class="group hover:bg-slate-50">
+          <tbody ref="tbodyRef">
+            <tr
+              v-for="(row, rowIndex) in model.rows"
+              :key="rowIndex"
+              :data-row-index="rowIndex"
+              class="group hover:bg-slate-50"
+              :class="dragFrom === rowIndex ? 'bg-emerald-50 opacity-60' : ''"
+            >
+              <td class="w-6 border-b border-slate-100 px-0 align-middle">
+                <button
+                  class="mx-auto grid h-6 w-5 cursor-grab touch-none place-items-center rounded text-slate-300 transition hover:bg-slate-100 hover:text-slate-500 active:cursor-grabbing"
+                  title="拖拽调整顺序"
+                  @pointerdown="onDragStart($event, rowIndex)"
+                >
+                  <i class="fa-solid fa-grip-vertical text-[10px]"></i>
+                </button>
+              </td>
               <td
                 v-for="(cell, cellIndex) in row.cells"
                 :key="cellIndex"
@@ -181,7 +197,7 @@
 
             <tr v-if="model.rows.length === 0">
               <td
-                :colspan="model.head.length + (model.kind === 'entries' ? 0 : 1)"
+                :colspan="model.head.length + (model.kind === 'entries' ? 0 : 1) + 1"
                 class="px-3 py-6 text-center text-xs text-slate-400"
               >
                 暂无数据
@@ -205,11 +221,29 @@
         </button>
       </div>
     </template>
+
+    <!-- 拖拽时显示的目标插入位置 -->
+    <div
+      v-if="indicator"
+      class="pointer-events-none fixed z-50 h-[3px] rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.7)]"
+      :style="{
+        top: `${indicator.top}px`,
+        left: `${indicator.left}px`,
+        width: `${indicator.width}px`,
+      }"
+    >
+      <span
+        class="absolute -left-1 top-1/2 h-2 w-2 -translate-y-1/2 rounded-full bg-emerald-500"
+      ></span>
+      <span
+        class="absolute -right-1 top-1/2 h-2 w-2 -translate-y-1/2 rounded-full bg-emerald-500"
+      ></span>
+    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { computed, ref } from 'vue';
+import { computed, onBeforeUnmount, ref } from 'vue';
 import { storeToRefs } from 'pinia';
 import useStore from '../../store/index.ts';
 import {
@@ -527,4 +561,98 @@ function removeColumn(head: string) {
     }
   });
 }
+
+/* ---------------- 拖拽调整行顺序 ---------------- */
+const tbodyRef = ref<HTMLElement | null>(null);
+const tableRef = ref<HTMLElement | null>(null);
+/** 正在拖拽的行下标 */
+const dragFrom = ref<number | null>(null);
+/** 插入位置（0 ~ 行数），用于显示插入指示线 */
+const dropAt = ref<number | null>(null);
+/** 指示线的屏幕坐标（fixed 定位，视口坐标系） */
+const indicator = ref<{ top: number; left: number; width: number } | null>(null);
+let rowRects: DOMRect[] = [];
+
+/** 根据目标插入下标算出指示线该画在哪 */
+function updateIndicator(target: number) {
+  const table = tableRef.value;
+  if (!table || rowRects.length === 0) {
+    indicator.value = null;
+    return;
+  }
+  const rect = table.getBoundingClientRect();
+  const last = rowRects[rowRects.length - 1];
+  const top = target >= rowRects.length ? last.bottom : rowRects[target].top;
+
+  indicator.value = { top: top - 1, left: rect.left, width: rect.width };
+}
+
+function onDragStart(event: PointerEvent, index: number) {
+  if (event.button !== 0) return;
+  const rows = tbodyRef.value?.querySelectorAll<HTMLElement>('tr[data-row-index]');
+  if (!rows || rows.length < 2) return;
+
+  event.preventDefault();
+  dragFrom.value = index;
+  dropAt.value = index;
+  rowRects = Array.from(rows).map((row) => row.getBoundingClientRect());
+  updateIndicator(index);
+
+  (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+  window.addEventListener('pointermove', onDragMove);
+  window.addEventListener('pointerup', onDragEnd);
+  window.addEventListener('pointercancel', onDragEnd);
+}
+
+function onDragMove(event: PointerEvent) {
+  if (dragFrom.value === null) return;
+  const y = event.clientY;
+  let target = rowRects.length;
+  for (let i = 0; i < rowRects.length; i += 1) {
+    const rect = rowRects[i];
+    if (y < rect.top + rect.height / 2) {
+      target = i;
+      break;
+    }
+  }
+  dropAt.value = target;
+  updateIndicator(target);
+}
+
+function onDragEnd() {
+  const from = dragFrom.value;
+  const to = dropAt.value;
+  stopDrag();
+  if (from === null || to === null || to === from || to === from + 1) return;
+  moveRow(from, to);
+}
+
+function stopDrag() {
+  dragFrom.value = null;
+  dropAt.value = null;
+  indicator.value = null;
+  rowRects = [];
+  window.removeEventListener('pointermove', onDragMove);
+  window.removeEventListener('pointerup', onDragEnd);
+  window.removeEventListener('pointercancel', onDragEnd);
+}
+
+/** 把第 from 行移动到插入位置 to（数组走 splice，对象则重建键顺序） */
+function moveRow(from: number, to: number) {
+  withRoot((root) => {
+    const insertAt = to > from ? to - 1 : to;
+    if (Array.isArray(root)) {
+      const [moved] = root.splice(from, 1);
+      root.splice(insertAt, 0, moved);
+      return;
+    }
+    const entries = Object.entries(root);
+    const [moved] = entries.splice(from, 1);
+    entries.splice(insertAt, 0, moved);
+    for (const key of Object.keys(root)) delete root[key];
+    for (const [key, value] of entries) root[key] = value;
+  });
+}
+
+onBeforeUnmount(stopDrag);
 </script>
