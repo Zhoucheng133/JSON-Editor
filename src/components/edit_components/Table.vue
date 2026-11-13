@@ -133,13 +133,19 @@
                     :class="valueClass(cellType(cell.value))"
                     @change="onValueChange(row.ref, cell.column, $event)"
                   />
-                  <span
+                  <input
                     v-else
-                    class="min-w-0 flex-1 truncate rounded border border-transparent px-1.5 py-1 font-mono text-[12px] text-slate-400"
-                    :title="cellText(cell.value)"
-                  >
-                    {{ cellText(cell.value) }}
-                  </span>
+                    type="text"
+                    :value="cellText(cell.value)"
+                    title="编辑 JSON 内容"
+                    class="min-w-0 flex-1 rounded border border-transparent bg-transparent px-1.5 py-1 font-mono text-[12px] text-slate-400 outline-none transition hover:border-slate-200 focus:border-emerald-400 focus:bg-white"
+                    :class="
+                      invalidCells.has(cellKey(row.ref, cell.column))
+                        ? 'border-red-400 ring-1 ring-red-300'
+                        : ''
+                    "
+                    @change="onComplexChange(row.ref, cell.column, $event)"
+                  />
 
                   <DropSelect
                     compact
@@ -300,6 +306,8 @@ const model = computed<Model | null>(() => {
 /* ---------------- 编辑 ---------------- */
 const editingColumn = ref<string | null>(null);
 const columnText = ref('');
+/** 输入了非法 JSON 的单元格，短暂标红 */
+const invalidCells = ref<Set<string>>(new Set());
 
 function withRoot(mutator: (root: any) => void) {
   if (!parsed.value.ok) return;
@@ -400,6 +408,33 @@ function toggleBoolean(ref_: RowRef, column: string | number | undefined) {
 /** 列表视图里没有独立字段可删，直接删行 */
 function canDeleteCell(ref_: RowRef) {
   return ref_.kind !== 'list';
+}
+
+function cellKey(ref_: RowRef, column: string | number | undefined) {
+  if (ref_.kind === 'record') return `r:${ref_.index}:${String(column)}`;
+  if (ref_.kind === 'entry') return `e:${ref_.key}`;
+  return `l:${ref_.index}`;
+}
+
+function flashInvalid(key: string) {
+  invalidCells.value = new Set(invalidCells.value).add(key);
+  window.setTimeout(() => {
+    const next = new Set(invalidCells.value);
+    next.delete(key);
+    invalidCells.value = next;
+  }, 1200);
+}
+
+/** 数组 / 对象单元格：按 JSON 文本编辑，非法输入则还原并标红 */
+function onComplexChange(ref_: RowRef, column: string | number | undefined, event: Event) {
+  const input = event.target as HTMLInputElement;
+  const original = currentValue(ref_, column);
+  try {
+    setValue(ref_, column, JSON.parse(input.value));
+  } catch {
+    input.value = cellText(original);
+    flashInvalid(cellKey(ref_, column));
+  }
 }
 
 /** 删除字段（键值对），删除后该单元格会显示「无数据」标记 */

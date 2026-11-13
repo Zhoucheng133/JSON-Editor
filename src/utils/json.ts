@@ -69,6 +69,13 @@ export function convertValue(value: unknown, type: JsonType): unknown {
       return false;
     case "null":
       return null;
+    case "array":
+      if (Array.isArray(value)) return value;
+      // 把标量包成单元素数组，尽量不丢数据
+      return value === null || value === undefined ? [] : [value];
+    case "object":
+      if (value !== null && typeof value === "object" && !Array.isArray(value)) return value;
+      return {};
     default:
       return value;
   }
@@ -82,6 +89,8 @@ export const TYPE_OPTIONS: DropdownOption[] = [
   { value: "number", label: "数字", icon: "fa-hashtag", color: "#d97706" },
   { value: "boolean", label: "布尔", icon: "fa-toggle-on", color: "#7c3aed" },
   { value: "null", label: "null", icon: "fa-ban", color: "#94a3b8" },
+  { value: "array", label: "数组", icon: "fa-list-ul", color: "#0284c7" },
+  { value: "object", label: "对象", icon: "fa-cube", color: "#db2777" },
 ];
 
 export const BOOL_OPTIONS: DropdownOption[] = [

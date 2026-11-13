@@ -170,6 +170,7 @@ import useStore from '../../store/index.ts';
 import {
   BOOL_OPTIONS,
   cloneJson,
+  convertValue,
   getAt,
   jsonType,
   parentOf,
@@ -265,6 +266,8 @@ const editPath = ref<JsonPath>([]);
 const editType = ref<JsonType>('string');
 const editText = ref('');
 const editOriginal = ref('');
+/** 进入编辑时的原始值，切换到数组/对象时用来转换 */
+const editValue = ref<unknown>(null);
 
 const adding = ref<{ id: string; path: JsonPath; key: string } | null>(null);
 
@@ -292,7 +295,8 @@ function startEditValue(row: Row) {
   editId.value = row.id;
   editTarget.value = 'value';
   editPath.value = row.path;
-  editType.value = row.type === 'object' || row.type === 'array' ? 'string' : row.type;
+  editType.value = row.type;
+  editValue.value = row.value;
   editText.value = row.type === 'null' ? '' : String(row.value);
 }
 
@@ -309,9 +313,25 @@ function cancelEdit() {
   editId.value = null;
 }
 
-/** 切换正在编辑的值类型，并把编辑框内容调整成合适的初始值 */
+/** 切换正在编辑的值类型；选到数组/对象时直接转换并结束编辑 */
 function setEditType(type: JsonType) {
   if (type === editType.value) return;
+
+  if (type === 'array' || type === 'object') {
+    const path = editPath.value;
+    const next = convertValue(editValue.value, type);
+    cancelEdit();
+    if (path.length === 0) {
+      store.commit(stringifyJson(next));
+      return;
+    }
+    withRoot((root) => {
+      const parent = parentOf(root, path);
+      parent[path[path.length - 1]] = next;
+    });
+    return;
+  }
+
   if (type === 'boolean') {
     editText.value = editText.value === 'false' ? 'false' : 'true';
   } else if (editType.value === 'null') {
