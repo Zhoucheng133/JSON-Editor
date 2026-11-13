@@ -33,14 +33,31 @@
 
     <template v-else>
       <div class="min-h-0 flex-1 overflow-auto">
-        <table ref="tableRef" class="w-full border-collapse text-[13px]">
+        <table
+          ref="tableRef"
+          class="border-collapse text-[13px]"
+          :style="{
+            tableLayout: frozen ? 'fixed' : 'auto',
+            width: frozen ? totalWidth + 'px' : '100%',
+          }"
+        >
+          <colgroup v-if="frozen">
+            <col style="width: 24px" />
+            <col
+              v-for="(head, index) in model.head"
+              :key="'col-' + head + '-' + index"
+              :style="{ width: colWidth(index) + 'px' }"
+            />
+            <col v-if="model.kind !== 'entries'" style="width: 40px" />
+          </colgroup>
           <thead class="sticky top-0 z-10 bg-slate-50">
             <tr>
               <th class="w-6 border-b border-slate-200"></th>
               <th
                 v-for="(head, index) in model.head"
                 :key="index"
-                class="border-b border-slate-200 px-2 py-1.5 text-left text-[11px] font-medium text-slate-500"
+                :data-col-index="index"
+                class="group relative border-b border-slate-200 px-2 py-1.5 text-left text-[11px] font-medium text-slate-500"
               >
                 <div v-if="model.kind === 'records'" class="group flex items-center gap-1">
                   <input
@@ -68,6 +85,19 @@
                   </button>
                 </div>
                 <span v-else>{{ head }}</span>
+
+                <!-- 列宽拖拽手柄 -->
+                <span
+                  class="absolute -right-0.5 top-0 z-20 h-full w-1.5 cursor-col-resize touch-none select-none"
+                  :class="
+                    resizingCol === colKey(index)
+                      ? 'bg-emerald-400'
+                      : 'hover:bg-emerald-300/80'
+                  "
+                  title="拖动调整列宽，双击恢复默认"
+                  @pointerdown.stop.prevent="onResizeStart($event, index)"
+                  @dblclick.stop="resetColWidth(index)"
+                ></span>
               </th>
               <th
                 v-if="model.kind === 'records'"
@@ -114,7 +144,7 @@
                 <input
                   v-else-if="cell.kind === 'key'"
                   :value="String(cell.value)"
-                  class="w-full min-w-24 rounded border border-transparent bg-transparent px-1.5 py-1 font-mono text-[12px] text-sky-700 outline-none transition hover:border-slate-200 focus:border-emerald-400 focus:bg-white"
+                  class="w-full min-w-0 rounded border border-transparent bg-transparent px-1.5 py-1 font-mono text-[12px] text-sky-700 outline-none transition hover:border-slate-200 focus:border-emerald-400 focus:bg-white"
                   @change="onKeyChange(cell.value, $event)"
                 />
 
@@ -225,7 +255,7 @@
     <!-- 拖拽时显示的目标插入位置 -->
     <div
       v-if="indicator"
-      class="pointer-events-none fixed z-50 h-[3px] rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.7)]"
+      class="pointer-events-none fixed z-50 h-0.75 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.7)]"
       :style="{
         top: `${indicator.top}px`,
         left: `${indicator.left}px`,
@@ -243,7 +273,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onBeforeUnmount, ref } from 'vue';
+import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import useStore from '../../store/index.ts';
 import {
@@ -562,6 +592,99 @@ function removeColumn(head: string) {
   });
 }
 
+/* ---------------- 调整列宽 ---------------- */
+const MIN_COL_WIDTH = 80;
+/** 冻结后新增列的默认宽度 */
+const DEFAULT_COL_WIDTH = 160;
+/** 是否已按内容测量并冻结列宽（冻结后才切换到固定布局） */
+const frozen = ref(false);
+/** 冻结后的列宽（key -> px） */
+const colWidths = ref<Record<string, number>>({});
+
+/** 列的身份标识（按下标，重命名列时宽度也能保留） */
+function colKey(index: number) {
+  const m = model.value;
+  return `${m?.kind ?? 'x'}:${index}`;
+}
+
+function colWidth(index: number) {
+  return colWidths.value[colKey(index)] ?? DEFAULT_COL_WIDTH;
+}
+
+/** 首次拖动时，把浏览器按内容算出的各列宽度量下来并冻结 */
+function freezeWidths() {
+  const table = tableRef.value;
+  if (!table) return;
+  const widths: Record<string, number> = {};
+  table.querySelectorAll<HTMLElement>('th[data-col-index]').forEach((cell) => {
+    const index = Number(cell.dataset.colIndex);
+    widths[colKey(index)] = Math.round(cell.getBoundingClientRect().width);
+  });
+  colWidths.value = widths;
+  frozen.value = true;
+}
+
+/** 表格总宽度（含拖拽列与操作列） */
+const totalWidth = computed(() => {
+  const m = model.value;
+  if (!m) return 0;
+  const fixed = 24 + (m.kind === 'entries' ? 0 : 40);
+  return fixed + m.head.reduce((sum, _head, index) => sum + colWidth(index), 0);
+});
+
+const resizingCol = ref<string | null>(null);
+let resizeKey = '';
+let resizeStartX = 0;
+let resizeStartWidth = 0;
+
+function onResizeStart(event: PointerEvent, index: number) {
+  if (event.button !== 0) return;
+  if (!frozen.value) freezeWidths();
+  resizeKey = colKey(index);
+  resizeStartX = event.clientX;
+  resizeStartWidth = colWidth(index);
+  resizingCol.value = resizeKey;
+
+  (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+  window.addEventListener('pointermove', onResizeMove);
+  window.addEventListener('pointerup', stopResize);
+  window.addEventListener('pointercancel', stopResize);
+}
+
+function onResizeMove(event: PointerEvent) {
+  if (!resizingCol.value) return;
+  const next = Math.max(
+    MIN_COL_WIDTH,
+    Math.round(resizeStartWidth + event.clientX - resizeStartX),
+  );
+  colWidths.value = { ...colWidths.value, [resizeKey]: next };
+}
+
+function stopResize() {
+  resizingCol.value = null;
+  window.removeEventListener('pointermove', onResizeMove);
+  window.removeEventListener('pointerup', stopResize);
+  window.removeEventListener('pointercancel', stopResize);
+}
+
+/** 双击手柄恢复该列默认宽度 */
+function resetColWidth(index: number) {
+  const key = colKey(index);
+  if (!(key in colWidths.value)) return;
+  const next = { ...colWidths.value };
+  delete next[key];
+  colWidths.value = next;
+}
+
+/** 表格结构（records / entries / list）变化时，回到按内容自适应的状态 */
+watch(
+  () => model.value?.kind,
+  () => {
+    frozen.value = false;
+    colWidths.value = {};
+  },
+);
+
 /* ---------------- 拖拽调整行顺序 ---------------- */
 const tbodyRef = ref<HTMLElement | null>(null);
 const tableRef = ref<HTMLElement | null>(null);
@@ -654,5 +777,8 @@ function moveRow(from: number, to: number) {
   });
 }
 
-onBeforeUnmount(stopDrag);
+onBeforeUnmount(() => {
+  stopDrag();
+  stopResize();
+});
 </script>
