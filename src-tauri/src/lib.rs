@@ -1,10 +1,5 @@
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
-
 const MAX_JSON_FILE_SIZE: u64 = 10 * 1024 * 1024;
+
 #[tauri::command]
 fn read_json_file(path: String) -> Result<String, String> {
     let metadata = std::fs::metadata(&path).map_err(|e| format!("无法访问文件：{e}"))?;
@@ -25,7 +20,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet, read_json_file])
+        .invoke_handler(tauri::generate_handler![read_json_file])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
