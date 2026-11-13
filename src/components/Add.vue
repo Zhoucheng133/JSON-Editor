@@ -17,7 +17,7 @@
     ></div>
 
     <main class="relative z-10 flex flex-1 items-center justify-center px-6 pb-10">
-      <section class="w-full max-w-[560px]">
+      <section class="w-full max-w-140">
         <div class="mb-7 text-center">
           <h1 class="text-2xl font-semibold tracking-tight text-slate-900">打开 JSON 文件</h1>
           <p class="mt-2 text-sm text-slate-500">拖拽文件到下方，或从本地选择，即可开始编辑</p>
@@ -75,13 +75,13 @@
                 class="max-h-40 overflow-hidden p-3 font-mono text-[11px] leading-5 text-slate-600"
               ><code>{{ prettyPreview }}</code></pre>
               <div
-                class="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-white to-transparent"
+                class="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-linear-to-t from-white to-transparent"
               ></div>
             </div>
 
             <div class="mt-4 flex gap-2">
               <button
-                class="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-emerald-500/20 transition hover:brightness-105 active:scale-[0.99]"
+                class="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-linear-to-r from-emerald-500 to-teal-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-emerald-500/20 transition hover:brightness-105 active:scale-[0.99]"
                 @click="startEditing"
               >
                 开始编辑
@@ -104,7 +104,7 @@
             data-tauri-drag-region="false"
             role="button"
             tabindex="0"
-            class="group relative flex min-h-[300px] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border border-dashed px-8 py-10 text-center outline-none transition-all duration-300 focus-visible:border-emerald-400 focus-visible:ring-2 focus-visible:ring-emerald-400/20"
+            class="group relative flex min-h-75 cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border border-dashed px-8 py-10 text-center outline-none transition-all duration-300 focus-visible:border-emerald-400 focus-visible:ring-2 focus-visible:ring-emerald-400/20"
             :class="[
               isDragging
                 ? 'scale-[1.01] border-emerald-400 bg-emerald-50/70 shadow-[0_20px_60px_-25px_rgba(16,185,129,0.45)]'
@@ -120,11 +120,11 @@
             @drop="onDrop"
           >
             <div
-              class="pointer-events-none absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent"
+              class="pointer-events-none absolute inset-x-10 top-0 h-px bg-linear-to-r from-transparent via-slate-200 to-transparent"
             ></div>
 
             <div
-              class="relative mb-5 grid h-[74px] w-[74px] place-items-center rounded-2xl border border-slate-200 bg-white shadow-sm transition-transform duration-300 group-hover:-translate-y-0.5"
+              class="relative mb-5 grid h-18.5 w-18.5 place-items-center rounded-2xl border border-slate-200 bg-white shadow-sm transition-transform duration-300 group-hover:-translate-y-0.5"
               :class="isDragging ? 'scale-105 border-emerald-300' : ''"
             >
               <div
@@ -197,7 +197,7 @@
     <Transition name="fade">
       <div
         v-if="isDragging"
-        class="pointer-events-none fixed inset-2 z-30 rounded-2xl border-2 border-emerald-400/70 bg-emerald-400/[0.06] shadow-[inset_0_0_80px_rgba(16,185,129,0.10)]"
+        class="pointer-events-none fixed inset-2 z-30 rounded-2xl border-2 border-emerald-400/70 bg-emerald-400/6 shadow-[inset_0_0_80px_rgba(16,185,129,0.10)]"
       >
         <div
           class="absolute left-1/2 top-6 flex -translate-x-1/2 items-center gap-2 rounded-full border border-emerald-200 bg-white/95 px-4 py-1.5 text-xs font-medium text-emerald-600 shadow-xl"
