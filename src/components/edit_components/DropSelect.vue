@@ -20,7 +20,7 @@
       <div
         v-if="open"
         ref="menuEl"
-        class="fixed z-[60] min-w-32 overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-xl shadow-slate-900/10"
+        class="fixed z-60 min-w-32 overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-xl shadow-slate-900/10"
         :style="{ top: `${pos.top}px`, left: `${pos.left}px` }"
       >
         <button

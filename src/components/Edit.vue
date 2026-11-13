@@ -15,7 +15,7 @@
         >
           <i class="fa-solid fa-file-code text-[10px]"></i>
         </div>
-        <span class="max-w-[240px] shrink-0 truncate text-[12px] font-medium text-slate-800">
+        <span class="max-w-60 shrink-0 truncate text-[12px] font-medium text-slate-800">
           {{ name || '未命名' }}
         </span>
         <span
@@ -86,7 +86,7 @@
         <div class="mx-1 h-5 w-px bg-slate-200"></div>
 
         <button
-          class="inline-flex h-8 items-center gap-1.5 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 px-3 text-[12px] font-semibold text-white shadow-sm shadow-emerald-500/20 transition hover:brightness-105 disabled:opacity-60"
+          class="inline-flex h-8 items-center gap-1.5 rounded-lg bg-linear-to-r from-emerald-500 to-teal-500 px-3 text-[12px] font-semibold text-white shadow-sm shadow-emerald-500/20 transition hover:brightness-105 disabled:opacity-60"
           :disabled="saving"
           title="保存 (⌘S)"
           @click="save"

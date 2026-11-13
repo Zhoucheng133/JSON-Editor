@@ -16,7 +16,7 @@
     <div v-else class="min-h-0 flex-1 overflow-auto py-2 font-mono text-[13px]">
       <template v-for="row in rows" :key="row.id">
         <div
-          class="group flex items-center gap-1.5 rounded-md py-[3px] pr-2 hover:bg-slate-50"
+          class="group flex items-center gap-1.5 rounded-md py-0.75 pr-2 hover:bg-slate-50"
           :style="{ paddingLeft: `${10 + row.depth * 18}px` }"
         >
           <!-- 展开/折叠 -->
@@ -136,7 +136,7 @@
         <!-- 新增字段的输入行（放在容器子树的末尾） -->
         <div
           v-if="adding && addAfterId === row.id"
-          class="flex items-center gap-1.5 rounded-md py-[3px] pr-2"
+          class="flex items-center gap-1.5 rounded-md py-0.75 pr-2"
           :style="{ paddingLeft: `${10 + row.depth * 18 + 22}px` }"
         >
           <span class="text-slate-400">+</span>
