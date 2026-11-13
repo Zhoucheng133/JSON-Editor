@@ -58,7 +58,7 @@
       </div>
 
       <!-- 操作按钮 -->
-      <div class="flex shrink-0 items-center gap-1">
+      <div class="ml-auto flex shrink-0 items-center gap-1">
         <button
           class="grid h-8 w-8 place-items-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:bg-transparent"
           title="撤销 (⌘Z)"
