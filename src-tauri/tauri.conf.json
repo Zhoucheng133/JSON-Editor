@@ -15,9 +15,13 @@
         "title": "JSON Editor",
         "width": 800,
         "height": 600,
-        "titleBarStyle": "Transparent",
+        "minWidth": 480,
+        "minHeight": 420,
         "center": true,
-        "hiddenTitle": true
+        "visible": false,
+        "theme": "Light",
+        "decorations": false,
+        "backgroundColor": "#f6f7f9"
       }
     ],
     "security": {

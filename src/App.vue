@@ -1,10 +1,12 @@
 <template>
+  <WindowControls />
+
   <Add v-if="path.length == 0" />
 
   <!-- 文件已打开：编辑器视图占位，下一步可在此接入真正的编辑器 -->
   <div
     v-else
-    data-tauri-drag-region
+    data-tauri-drag-region="deep"
     class="relative flex h-screen w-screen flex-col overflow-hidden bg-[#f6f7f9] text-slate-800"
   >
     <div
@@ -13,7 +15,8 @@
 
     <main class="relative z-10 flex flex-1 items-center justify-center px-6 pb-10">
       <div
-        class="w-full max-w-[560px] rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xl shadow-slate-900/5"
+        data-tauri-drag-region="false"
+        class="w-full max-w-140 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xl shadow-slate-900/5"
       >
         <div class="flex items-start gap-3">
           <div
@@ -63,13 +66,17 @@ import { onMounted } from 'vue';
 import store from './store';
 import { storeToRefs } from 'pinia';
 import Add from './components/Add.vue';
+import WindowControls from './components/WindowControls.vue';
 
 const storeRef = store();
 const { path, name, content } = storeToRefs(storeRef);
 const { closeFile } = storeRef;
 
+const isTauri = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
+
 onMounted(async () => {
-  const appWindow = getCurrentWindow();
-  appWindow.show();
+  // 窗口默认隐藏，等前端挂载完成后再显示，避免出现白屏闪烁
+  if (!isTauri) return;
+  await getCurrentWindow().show();
 });
 </script>

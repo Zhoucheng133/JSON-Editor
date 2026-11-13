@@ -1,6 +1,6 @@
 <template>
   <div
-    data-tauri-drag-region
+    data-tauri-drag-region="deep"
     class="relative flex h-screen w-screen flex-col overflow-hidden bg-[#f6f7f9] text-slate-800"
   >
     <!-- 背景氛围 -->
@@ -28,6 +28,7 @@
           <div
             v-if="picked"
             key="preview"
+            data-tauri-drag-region="false"
             class="pop-in rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xl shadow-slate-900/5"
           >
             <div class="flex items-start gap-3">
@@ -100,6 +101,7 @@
           <div
             v-else
             key="dropzone"
+            data-tauri-drag-region="false"
             role="button"
             tabindex="0"
             class="group relative flex min-h-[300px] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border border-dashed px-8 py-10 text-center outline-none transition-all duration-300 focus-visible:border-emerald-400 focus-visible:ring-2 focus-visible:ring-emerald-400/20"
@@ -424,7 +426,7 @@ function onDragLeave(e: DragEvent) {
 }
 
 function onDrop(e: DragEvent) {
-  if (isTauri) return;
+  if (isTauri) return;  
   e.preventDefault();
   dragDepth = 0;
   isDragging.value = false;
