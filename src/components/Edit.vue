@@ -86,7 +86,12 @@
         <div class="mx-1 h-5 w-px bg-slate-200"></div>
 
         <button
-          class="inline-flex h-8 items-center gap-1.5 rounded-lg bg-linear-to-r from-amber-400 to-amber-500 px-3 text-[12px] font-semibold text-white shadow-sm shadow-amber-500/20 transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none disabled:hover:brightness-100"
+          class="inline-flex h-8 items-center gap-1.5 rounded-lg px-3 text-[12px] font-semibold transition disabled:cursor-not-allowed"
+          :class="
+            saving || !dirty
+              ? 'bg-slate-100 text-slate-400'
+              : 'bg-linear-to-r from-amber-400 to-amber-500 text-white shadow-sm shadow-amber-500/20 hover:brightness-105'
+          "
           :disabled="saving || !dirty"
           title="保存 (⌘S)"
           @click="save"

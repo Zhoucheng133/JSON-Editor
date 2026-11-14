@@ -5,7 +5,7 @@
   >
     <!-- 背景氛围 -->
     <div
-      class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_-10%,rgba(245,158,11,0.10),transparent_45%),radial-gradient(circle_at_88%_8%,rgba(56,189,248,0.08),transparent_42%)]"
+      class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_-10%,rgba(245,158,11,0.10),transparent_45%),radial-gradient(circle_at_88%_8%,rgba(251,191,36,0.06),transparent_42%)]"
     ></div>
     <div
       class="pointer-events-none absolute inset-0 opacity-[0.035]"
