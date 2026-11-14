@@ -136,6 +136,7 @@
                 v-for="(cell, cellIndex) in row.cells"
                 :key="cellIndex"
                 class="border-b border-slate-100 px-1 py-0.5"
+                @contextmenu.prevent="openCellMenu($event, rowIndex, cellIndex, row.ref, cell)"
               >
                 <span v-if="cell.kind === 'index'" class="px-2 text-[11px] text-slate-400">
                   {{ cell.value }}
@@ -162,6 +163,13 @@
 
                 <!-- 有数据的单元格 -->
                 <div v-else class="group/cell flex items-center gap-1">
+                  <DropSelect
+                    compact
+                    :model-value="cellType(cell.value)"
+                    :options="TYPE_OPTIONS"
+                    @update:model-value="onTypeChange(row.ref, cell.column, $event)"
+                  />
+
                   <button
                     v-if="cellType(cell.value) === 'boolean'"
                     class="min-w-0 flex-1 rounded border border-transparent px-1.5 py-1 text-left font-mono text-[12px] text-violet-600 transition hover:border-slate-200 hover:bg-white"
@@ -191,13 +199,6 @@
                         : ''
                     "
                     @change="onComplexChange(row.ref, cell.column, $event)"
-                  />
-
-                  <DropSelect
-                    compact
-                    :model-value="cellType(cell.value)"
-                    :options="TYPE_OPTIONS"
-                    @update:model-value="onTypeChange(row.ref, cell.column, $event)"
                   />
 
                   <button
@@ -269,11 +270,44 @@
         class="absolute -right-1 top-1/2 h-2 w-2 -translate-y-1/2 rounded-full bg-emerald-500"
       ></span>
     </div>
+
+    <!-- 单元格右键菜单 -->
+    <Teleport to="body">
+      <Transition name="ctx">
+        <div
+          v-if="contextMenu"
+          ref="ctxMenuEl"
+          class="fixed z-70 min-w-44 overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-xl shadow-slate-900/10"
+          :style="{ top: `${ctxPos.top}px`, left: `${ctxPos.left}px` }"
+        >
+          <template v-for="(item, index) in contextItems" :key="index">
+            <div v-if="'divider' in item" class="my-1 h-px bg-slate-100"></div>
+            <button
+              v-else
+              type="button"
+              class="flex w-full items-center gap-2 px-2.5 py-1.5 text-left text-[12px] transition"
+              :class="
+                item.danger
+                  ? 'text-red-600 hover:bg-red-50'
+                  : 'text-slate-600 hover:bg-slate-50'
+              "
+              @click="runContextItem(item)"
+            >
+              <i
+                class="fa-solid w-3.5 shrink-0 text-center text-[11px]"
+                :class="item.icon"
+              ></i>
+              <span class="flex-1 whitespace-nowrap">{{ item.label }}</span>
+            </button>
+          </template>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import useStore from '../../store/index.ts';
 import {
@@ -553,6 +587,44 @@ function removeRow(ref_: RowRef) {
   });
 }
 
+/** 在指定行上方 / 下方插入一行 */
+function insertRowAt(rowIndex: number, position: 'above' | 'below') {
+  const at = position === 'above' ? rowIndex : rowIndex + 1;
+  withRoot((root) => {
+    if (Array.isArray(root)) {
+      root.splice(at, 0, model.value?.kind === 'records' ? {} : '');
+      return;
+    }
+    const entries = Object.entries(root);
+    entries.splice(Math.min(at, entries.length), 0, [uniqueKey(Object.keys(root), '新字段'), '']);
+    for (const key of Object.keys(root)) delete root[key];
+    for (const [key, value] of entries) root[key] = value;
+  });
+}
+
+/** 在指定列左侧 / 右侧插入一列（仅对象数组） */
+function insertColumnAt(colIndex: number, position: 'left' | 'right') {
+  const m = model.value;
+  if (!m || m.kind !== 'records') return;
+  const at = position === 'left' ? colIndex : colIndex + 1;
+  const key = uniqueKey(m.head, '新字段');
+  withRoot((root) => {
+    for (const row of root) {
+      if (row === null || typeof row !== 'object') continue;
+      const entries = Object.entries(row);
+      entries.splice(Math.min(at, entries.length), 0, [key, '']);
+      for (const k of Object.keys(row)) delete row[k];
+      for (const [k, v] of entries) row[k] = v;
+    }
+  });
+}
+
+/** 删除指定下标的列 */
+function deleteColumnAt(colIndex: number) {
+  const head = model.value?.head[colIndex];
+  if (head !== undefined) removeColumn(head);
+}
+
 function startColumn(head: string) {
   editingColumn.value = head;
   columnText.value = head;
@@ -777,8 +849,142 @@ function moveRow(from: number, to: number) {
   });
 }
 
+/* ---------------- 单元格右键菜单 ---------------- */
+type MenuItem = { label: string; icon: string; run: () => void; danger?: boolean };
+type MenuEntry = MenuItem | { divider: true };
+
+type CtxTarget = {
+  rowIndex: number;
+  cellIndex: number;
+  ref: RowRef;
+  column?: string | number;
+  hasValue: boolean;
+};
+
+const contextMenu = ref<(CtxTarget & { x: number; y: number }) | null>(null);
+const ctxMenuEl = ref<HTMLElement | null>(null);
+const ctxPos = ref({ top: 0, left: 0 });
+
+/** 当前右键目标可执行的操作 */
+const contextItems = computed<MenuEntry[]>(() => {
+  const ctx = contextMenu.value;
+  const m = model.value;
+  if (!ctx || !m) return [];
+
+  const items: MenuEntry[] = [
+    { label: '在上方插入行', icon: 'fa-arrow-up', run: () => insertRowAt(ctx.rowIndex, 'above') },
+    { label: '在下方插入行', icon: 'fa-arrow-down', run: () => insertRowAt(ctx.rowIndex, 'below') },
+    { label: '删除本行', icon: 'fa-trash-can', danger: true, run: () => removeRow(ctx.ref) },
+  ];
+
+  if (m.kind === 'records') {
+    items.push(
+      { divider: true },
+      { label: '在左侧插入列', icon: 'fa-arrow-left', run: () => insertColumnAt(ctx.cellIndex, 'left') },
+      { label: '在右侧插入列', icon: 'fa-arrow-right', run: () => insertColumnAt(ctx.cellIndex, 'right') },
+      { label: '删除本列', icon: 'fa-trash-can', danger: true, run: () => deleteColumnAt(ctx.cellIndex) },
+    );
+  }
+
+  if (ctx.hasValue && ctx.ref.kind !== 'list') {
+    items.push(
+      { divider: true },
+      { label: '删除该字段', icon: 'fa-eraser', danger: true, run: () => deleteCell(ctx.ref, ctx.column) },
+    );
+  }
+
+  return items;
+});
+
+function openCellMenu(
+  event: MouseEvent,
+  rowIndex: number,
+  cellIndex: number,
+  ref_: RowRef,
+  cell: Cell,
+) {
+  contextMenu.value = {
+    rowIndex,
+    cellIndex,
+    ref: ref_,
+    column: cell.column,
+    hasValue: cell.value !== undefined,
+    x: event.clientX,
+    y: event.clientY,
+  };
+  ctxPos.value = { top: event.clientY, left: event.clientX };
+  nextTick(clampContextMenu);
+}
+
+/** 让菜单不出界 */
+function clampContextMenu() {
+  const el = ctxMenuEl.value;
+  if (!el) return;
+  const margin = 8;
+  const rect = el.getBoundingClientRect();
+  const left = Math.min(ctxPos.value.left, window.innerWidth - rect.width - margin);
+  const top = Math.min(ctxPos.value.top, window.innerHeight - rect.height - margin);
+  ctxPos.value = { top: Math.max(margin, top), left: Math.max(margin, left) };
+}
+
+function runContextItem(item: MenuEntry) {
+  if ('divider' in item) return;
+  item.run();
+  contextMenu.value = null;
+}
+
+function closeContextMenu() {
+  contextMenu.value = null;
+}
+
+function onCtxPointerDown(event: PointerEvent) {
+  if (ctxMenuEl.value?.contains(event.target as Node)) return;
+  closeContextMenu();
+}
+
+function onCtxKeydown(event: KeyboardEvent) {
+  if (event.key === 'Escape') closeContextMenu();
+}
+
+function onCtxReposition() {
+  if (contextMenu.value) closeContextMenu();
+}
+
+watch(contextMenu, (value) => {
+  if (value) {
+    document.addEventListener('pointerdown', onCtxPointerDown, true);
+    document.addEventListener('keydown', onCtxKeydown, true);
+    window.addEventListener('scroll', onCtxReposition, true);
+    window.addEventListener('resize', onCtxReposition);
+  } else {
+    document.removeEventListener('pointerdown', onCtxPointerDown, true);
+    document.removeEventListener('keydown', onCtxKeydown, true);
+    window.removeEventListener('scroll', onCtxReposition, true);
+    window.removeEventListener('resize', onCtxReposition);
+  }
+});
+
 onBeforeUnmount(() => {
   stopDrag();
   stopResize();
+  document.removeEventListener('pointerdown', onCtxPointerDown, true);
+  document.removeEventListener('keydown', onCtxKeydown, true);
+  window.removeEventListener('scroll', onCtxReposition, true);
+  window.removeEventListener('resize', onCtxReposition);
 });
 </script>
+
+<style scoped>
+.ctx-enter-active,
+.ctx-leave-active {
+  transition:
+    opacity 0.12s ease,
+    transform 0.12s ease;
+}
+
+.ctx-enter-from,
+.ctx-leave-to {
+  opacity: 0;
+  transform: scale(0.96);
+}
+</style>
