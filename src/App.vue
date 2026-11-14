@@ -1,8 +1,10 @@
 <template>
   <WindowControls />
 
-  <Add v-if="path.length == 0" />
-  <Edit v-else />
+  <Transition name="page" mode="out-in">
+    <Add v-if="path.length == 0" key="add" />
+    <Edit v-else key="edit" />
+  </Transition>
 </template>
 
 <script lang="ts" setup>
@@ -24,3 +26,22 @@ onMounted(async () => {
   await getCurrentWindow().show();
 });
 </script>
+
+<style scoped>
+.page-enter-active,
+.page-leave-active {
+  transition:
+    opacity 0.2s ease,
+    transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.page-enter-from {
+  opacity: 0;
+  transform: translateY(12px) scale(0.995);
+}
+
+.page-leave-to {
+  opacity: 0;
+  transform: translateY(-10px) scale(0.995);
+}
+</style>
