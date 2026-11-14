@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "json_editor",
+  "productName": "JSON Editor",
   "version": "0.1.0",
   "identifier": "zhouc.jsoneditor",
   "build": {
