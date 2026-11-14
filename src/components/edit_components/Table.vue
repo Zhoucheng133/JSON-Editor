@@ -146,6 +146,7 @@
                   v-else-if="cell.kind === 'key'"
                   :value="String(cell.value)"
                   class="w-full min-w-0 rounded border border-transparent bg-transparent px-1.5 py-1 font-mono text-[12px] text-sky-700 outline-none transition hover:border-slate-200 focus:border-emerald-400 focus:bg-white"
+                  @keydown.enter="blurOnEnter"
                   @change="onKeyChange(cell.value, $event)"
                 />
 
@@ -185,6 +186,7 @@
                     :placeholder="cell.value === null ? 'null' : ''"
                     class="min-w-0 flex-1 rounded border border-transparent bg-transparent px-1.5 py-1 font-mono text-[12px] outline-none transition hover:border-slate-200 focus:border-emerald-400 focus:bg-white"
                     :class="valueClass(cellType(cell.value))"
+                    @keydown.enter="blurOnEnter"
                     @change="onValueChange(row.ref, cell.column, $event)"
                   />
                   <input
@@ -198,6 +200,7 @@
                         ? 'border-red-400 ring-1 ring-red-300'
                         : ''
                     "
+                    @keydown.enter="blurOnEnter"
                     @change="onComplexChange(row.ref, cell.column, $event)"
                   />
 
@@ -555,6 +558,12 @@ function addCell(ref_: RowRef, column: string | number | undefined) {
       if (row !== null && typeof row === 'object') row[column as string] = '';
     }
   });
+}
+
+/** 按下回车时移除输入框焦点（触发 blur → change，从而提交修改） */
+function blurOnEnter(event: KeyboardEvent) {
+  if (event.isComposing) return;
+  (event.target as HTMLElement).blur();
 }
 
 function onKeyChange(oldKey: unknown, event: Event) {
