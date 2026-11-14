@@ -2,7 +2,7 @@
   <button
     ref="triggerEl"
     type="button"
-    class="inline-flex shrink-0 items-center justify-center gap-1 rounded-md border border-slate-200 bg-white text-slate-600 outline-none transition hover:border-slate-300 hover:bg-slate-50 focus:border-emerald-400"
+    class="inline-flex shrink-0 items-center justify-center gap-1 rounded-md border border-slate-200 bg-white text-slate-600 outline-none transition hover:border-slate-300 hover:bg-slate-50 focus:border-amber-400"
     :class="compact ? 'h-6 w-6' : 'px-1.5 py-1 text-[11px]'"
     :title="current?.label"
     @click.stop="toggle"
@@ -39,7 +39,7 @@
           <span class="flex-1 whitespace-nowrap">{{ option.label }}</span>
           <i
             v-if="option.value === modelValue"
-            class="fa-solid fa-check text-[9px] text-emerald-500"
+            class="fa-solid fa-check text-[9px] text-amber-500"
           ></i>
         </button>
       </div>

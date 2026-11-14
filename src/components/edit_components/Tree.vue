@@ -39,7 +39,7 @@
               v-if="isEditing(row, 'key')"
               v-model="editText"
               v-focus
-              class="w-32 rounded border border-emerald-400 bg-white px-1 py-px text-slate-700 outline-none"
+              class="w-32 rounded border border-amber-400 bg-white px-1 py-px text-slate-700 outline-none"
               @keydown.enter.prevent="commitKey"
               @keydown.esc.prevent="cancelEdit"
             />
@@ -86,13 +86,13 @@
               v-else
               v-model="editText"
               v-focus
-              class="min-w-24 rounded border border-emerald-400 bg-white px-1 py-px text-slate-700 outline-none"
+              class="min-w-24 rounded border border-amber-400 bg-white px-1 py-px text-slate-700 outline-none"
               :class="editType === 'number' ? 'w-28' : 'w-48'"
               @keydown.enter.prevent="commitValue"
               @keydown.esc.prevent="cancelEdit"
             />
             <button
-              class="grid h-5 w-5 shrink-0 place-items-center rounded text-emerald-600 transition hover:bg-emerald-50"
+              class="grid h-5 w-5 shrink-0 place-items-center rounded text-amber-600 transition hover:bg-amber-50"
               title="确认"
               @click="commitValue"
             >
@@ -144,14 +144,14 @@
             v-model="adding.key"
             v-focus
             placeholder="字段名"
-            class="w-32 rounded border border-emerald-400 bg-white px-1 py-px text-sky-700 outline-none"
+            class="w-32 rounded border border-amber-400 bg-white px-1 py-px text-sky-700 outline-none"
             @keydown.enter.prevent="commitAdd"
             @keydown.esc.prevent="cancelAdd"
           />
           <span class="text-slate-400">:</span>
           <span class="text-slate-400">""</span>
           <button
-            class="grid h-5 w-5 place-items-center rounded text-emerald-600 transition hover:bg-emerald-50"
+            class="grid h-5 w-5 place-items-center rounded text-amber-600 transition hover:bg-amber-50"
             title="确认"
             @click="commitAdd"
           >
@@ -470,9 +470,9 @@ function valueText(row: Row) {
 function valueClass(type: JsonType) {
   switch (type) {
     case 'string':
-      return 'text-emerald-600';
-    case 'number':
       return 'text-amber-600';
+    case 'number':
+      return 'text-emerald-600';
     case 'boolean':
       return 'text-violet-600';
     case 'null':

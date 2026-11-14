@@ -11,7 +11,7 @@
       <!-- 文件信息 -->
       <div class="flex min-w-0 flex-1 items-center gap-2">
         <div
-          class="grid h-5 w-5 shrink-0 place-items-center rounded-md bg-emerald-50 text-emerald-600 ring-1 ring-inset ring-emerald-100"
+          class="grid h-5 w-5 shrink-0 place-items-center rounded-md bg-amber-50 text-amber-600 ring-1 ring-inset ring-amber-100"
         >
           <i class="fa-solid fa-file-code text-[10px]"></i>
         </div>
@@ -86,7 +86,7 @@
         <div class="mx-1 h-5 w-px bg-slate-200"></div>
 
         <button
-          class="inline-flex h-8 items-center gap-1.5 rounded-lg bg-linear-to-r from-emerald-500 to-teal-500 px-3 text-[12px] font-semibold text-white shadow-sm shadow-emerald-500/20 transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none disabled:hover:brightness-100"
+          class="inline-flex h-8 items-center gap-1.5 rounded-lg bg-linear-to-r from-amber-400 to-amber-500 px-3 text-[12px] font-semibold text-white shadow-sm shadow-amber-500/20 transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none disabled:hover:brightness-100"
           :disabled="saving || !dirty"
           title="保存 (⌘S)"
           @click="save"
@@ -128,7 +128,7 @@
               ? 'border-red-200 bg-red-50 text-red-600'
               : toastState.type === 'info'
                 ? 'border-slate-200 bg-white text-slate-600'
-                : 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                : 'border-amber-200 bg-amber-50 text-amber-700'
           "
         >
           <i

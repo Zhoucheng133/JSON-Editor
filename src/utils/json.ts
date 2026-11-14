@@ -85,8 +85,8 @@ export type DropdownOption = { value: string; label: string; icon?: string; colo
 
 /** 数据类型选项（带图标与配色，供自绘下拉菜单使用） */
 export const TYPE_OPTIONS: DropdownOption[] = [
-  { value: "string", label: "字符串", icon: "fa-font", color: "#059669" },
-  { value: "number", label: "数字", icon: "fa-hashtag", color: "#d97706" },
+  { value: "string", label: "字符串", icon: "fa-font", color: "#d97706" },
+  { value: "number", label: "数字", icon: "fa-hashtag", color: "#059669" },
   { value: "boolean", label: "布尔", icon: "fa-toggle-on", color: "#7c3aed" },
   { value: "null", label: "null", icon: "fa-ban", color: "#94a3b8" },
   { value: "array", label: "数组", icon: "fa-list-ul", color: "#0284c7" },
@@ -124,9 +124,9 @@ export function highlightJson(text: string): string {
 
     if (match[1] !== undefined) {
       const rest = text.slice(match.index + token.length);
-      cls = /^\s*:/.test(rest) ? "text-sky-700" : "text-emerald-600";
+      cls = /^\s*:/.test(rest) ? "text-sky-700" : "text-amber-600";
     } else if (match[2] !== undefined) {
-      cls = "text-amber-600";
+      cls = "text-emerald-600";
     } else if (match[3] === "null") {
       cls = "text-slate-400";
     } else if (match[3] !== undefined) {

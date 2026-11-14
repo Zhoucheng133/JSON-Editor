@@ -21,7 +21,7 @@
           v-model="text"
           spellcheck="false"
           wrap="off"
-          class="relative h-full w-full resize-none bg-transparent p-3 font-mono text-[13px] leading-6 text-transparent caret-slate-800 outline-none selection:bg-emerald-300/40 placeholder:text-slate-300"
+          class="relative h-full w-full resize-none bg-transparent p-3 font-mono text-[13px] leading-6 text-transparent caret-slate-800 outline-none selection:bg-amber-300/40 placeholder:text-slate-300"
           placeholder="在这里直接编辑 JSON 文本…"
           @input="scheduleCommit"
           @blur="flush"
@@ -37,7 +37,7 @@
     >
       <i
         class="fa-solid text-[10px]"
-        :class="status.ok ? 'fa-circle-check text-emerald-500' : 'fa-triangle-exclamation'"
+        :class="status.ok ? 'fa-circle-check text-amber-500' : 'fa-triangle-exclamation'"
       ></i>
       <span v-if="status.ok">JSON 有效 · {{ lineCount }} 行</span>
       <span v-else class="truncate" :title="status.error">{{ status.error }}</span>

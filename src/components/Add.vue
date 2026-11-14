@@ -5,7 +5,7 @@
   >
     <!-- 背景氛围 -->
     <div
-      class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_-10%,rgba(16,185,129,0.10),transparent_45%),radial-gradient(circle_at_88%_8%,rgba(56,189,248,0.08),transparent_42%)]"
+      class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_-10%,rgba(245,158,11,0.10),transparent_45%),radial-gradient(circle_at_88%_8%,rgba(56,189,248,0.08),transparent_42%)]"
     ></div>
     <div
       class="pointer-events-none absolute inset-0 opacity-[0.035]"
@@ -33,7 +33,7 @@
           >
             <div class="flex items-start gap-3">
               <div
-                class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-emerald-50 text-emerald-600 ring-1 ring-inset ring-emerald-100"
+                class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-amber-50 text-amber-600 ring-1 ring-inset ring-amber-100"
               >
                 <i class="fa-solid fa-file-code"></i>
               </div>
@@ -48,7 +48,7 @@
                 </p>
               </div>
               <span
-                class="mt-0.5 inline-flex shrink-0 items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700"
+                class="mt-0.5 inline-flex shrink-0 items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700"
               >
                 <i class="fa-solid fa-circle-check"></i>
                 有效
@@ -81,7 +81,7 @@
 
             <div class="mt-4 flex gap-2">
               <button
-                class="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-linear-to-r from-emerald-500 to-teal-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-emerald-500/20 transition hover:brightness-105 active:scale-[0.99]"
+                class="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-linear-to-r from-amber-400 to-amber-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-amber-500/20 transition hover:brightness-105 active:scale-[0.99]"
                 @click="startEditing"
               >
                 开始编辑
@@ -104,11 +104,11 @@
             data-tauri-drag-region="false"
             role="button"
             tabindex="0"
-            class="group relative flex min-h-75 cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border border-dashed px-8 py-10 text-center outline-none transition-all duration-300 focus-visible:border-emerald-400 focus-visible:ring-2 focus-visible:ring-emerald-400/20"
+            class="group relative flex min-h-75 cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border border-dashed px-8 py-10 text-center outline-none transition-all duration-300 focus-visible:border-amber-400 focus-visible:ring-2 focus-visible:ring-amber-400/20"
             :class="[
               isDragging
-                ? 'scale-[1.01] border-emerald-400 bg-emerald-50/70 shadow-[0_20px_60px_-25px_rgba(16,185,129,0.45)]'
-                : 'border-slate-300 bg-white/70 hover:border-emerald-300 hover:bg-white',
+                ? 'scale-[1.01] border-amber-400 bg-amber-50/70 shadow-[0_20px_60px_-25px_rgba(245,158,11,0.45)]'
+                : 'border-slate-300 bg-white/70 hover:border-amber-300 hover:bg-white',
               loading ? 'cursor-wait' : '',
             ]"
             @click="pickFile"
@@ -125,23 +125,23 @@
 
             <div
               class="relative mb-5 grid h-18.5 w-18.5 place-items-center rounded-2xl border border-slate-200 bg-white shadow-sm transition-transform duration-300 group-hover:-translate-y-0.5"
-              :class="isDragging ? 'scale-105 border-emerald-300' : ''"
+              :class="isDragging ? 'scale-105 border-amber-300' : ''"
             >
               <div
                 v-if="isDragging"
-                class="absolute inset-0 animate-ping rounded-2xl bg-emerald-400/10"
+                class="absolute inset-0 animate-ping rounded-2xl bg-amber-400/10"
               ></div>
               <i
                 v-if="loading"
-                class="fa-solid fa-spinner animate-spin text-2xl text-emerald-500"
+                class="fa-solid fa-spinner animate-spin text-2xl text-amber-500"
               ></i>
               <i
                 v-else-if="isDragging"
-                class="fa-solid fa-file-arrow-down relative text-2xl text-emerald-500"
+                class="fa-solid fa-file-arrow-down relative text-2xl text-amber-500"
               ></i>
               <i
                 v-else
-                class="fa-solid fa-cloud-arrow-up text-2xl text-slate-400 transition-colors group-hover:text-emerald-500"
+                class="fa-solid fa-cloud-arrow-up text-2xl text-slate-400 transition-colors group-hover:text-amber-500"
               ></i>
             </div>
 
@@ -154,7 +154,7 @@
               <template v-if="loading">正在校验 JSON 内容，请稍候</template>
               <template v-else>
                 或
-                <span class="text-emerald-600 underline decoration-emerald-300 underline-offset-4">
+                <span class="text-amber-600 underline decoration-amber-300 underline-offset-4">
                   点击浏览本地文件
                 </span>
               </template>
@@ -197,10 +197,10 @@
     <Transition name="fade">
       <div
         v-if="isDragging"
-        class="pointer-events-none fixed inset-2 z-30 rounded-2xl border-2 border-emerald-400/70 bg-emerald-400/6 shadow-[inset_0_0_80px_rgba(16,185,129,0.10)]"
+        class="pointer-events-none fixed inset-2 z-30 rounded-2xl border-2 border-amber-400/70 bg-amber-400/6 shadow-[inset_0_0_80px_rgba(245,158,11,0.10)]"
       >
         <div
-          class="absolute left-1/2 top-6 flex -translate-x-1/2 items-center gap-2 rounded-full border border-emerald-200 bg-white/95 px-4 py-1.5 text-xs font-medium text-emerald-600 shadow-xl"
+          class="absolute left-1/2 top-6 flex -translate-x-1/2 items-center gap-2 rounded-full border border-amber-200 bg-white/95 px-4 py-1.5 text-xs font-medium text-amber-600 shadow-xl"
         >
           <i class="fa-solid fa-arrow-down"></i>
           松开即可添加文件
