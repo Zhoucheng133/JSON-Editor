@@ -165,17 +165,19 @@ export function highlightJson(
     if (match.index > last) append(last, match.index);
 
     const token = match[0];
-    let cls = "text-slate-400";
+    let cls = "text-slate-400 dark:text-slate-500";
 
     if (match[1] !== undefined) {
       const rest = text.slice(match.index + token.length);
-      cls = /^\s*:/.test(rest) ? "text-sky-700" : "text-amber-600";
+      cls = /^\s*:/.test(rest)
+        ? "text-sky-700 dark:text-sky-300"
+        : "text-amber-600 dark:text-amber-400";
     } else if (match[2] !== undefined) {
-      cls = "text-emerald-600";
+      cls = "text-emerald-600 dark:text-emerald-400";
     } else if (match[3] === "null") {
-      cls = "text-slate-400";
+      cls = "text-slate-400 dark:text-slate-500";
     } else if (match[3] !== undefined) {
-      cls = "text-violet-600";
+      cls = "text-violet-600 dark:text-violet-400";
     }
 
     append(match.index, match.index + token.length, cls);

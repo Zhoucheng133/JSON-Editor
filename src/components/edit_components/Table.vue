@@ -1,12 +1,12 @@
 <template>
-  <div class="flex h-full min-h-0 flex-col bg-white">
+  <div class="flex h-full min-h-0 flex-col bg-white dark:bg-slate-950">
     <!-- JSON 无效 -->
     <div v-if="!parsed.ok" class="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
       <i class="fa-solid fa-triangle-exclamation text-2xl text-amber-500"></i>
-      <p class="text-sm font-medium text-slate-700">当前内容不是合法的 JSON，无法以表格编辑</p>
-      <p class="max-w-md text-xs text-slate-500">{{ parsed.error }}</p>
+      <p class="text-sm font-medium text-slate-700 dark:text-slate-300">当前内容不是合法的 JSON，无法以表格编辑</p>
+      <p class="max-w-md text-xs text-slate-500 dark:text-slate-400">{{ parsed.error }}</p>
       <button
-        class="mt-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-600 transition hover:bg-slate-50"
+        class="mt-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-600 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
         @click="emit('request-raw')"
       >
         切换到「原始文件」修复
@@ -18,13 +18,13 @@
       v-else-if="!model"
       class="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center"
     >
-      <i class="fa-solid fa-table-cells text-2xl text-slate-300"></i>
-      <p class="text-sm font-medium text-slate-700">当前 JSON 无法用表格展示</p>
-      <p class="max-w-md text-xs text-slate-500">
+      <i class="fa-solid fa-table-cells text-2xl text-slate-300 dark:text-slate-600"></i>
+      <p class="text-sm font-medium text-slate-700 dark:text-slate-300">当前 JSON 无法用表格展示</p>
+      <p class="max-w-md text-xs text-slate-500 dark:text-slate-400">
         表格视图适合「对象数组」「对象」或「数组」，请改用树状图或原始文件编辑。
       </p>
       <button
-        class="mt-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-600 transition hover:bg-slate-50"
+        class="mt-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-600 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
         @click="emit('request-tree')"
       >
         切换到「树状图」
@@ -50,17 +50,17 @@
             />
             <col v-if="model.kind !== 'entries'" style="width: 40px" />
           </colgroup>
-          <thead class="sticky top-0 z-10 bg-slate-50">
+          <thead class="sticky top-0 z-10 bg-slate-50 dark:bg-slate-900">
             <tr>
-              <th class="w-6 border-b border-slate-200"></th>
+              <th class="w-6 border-b border-slate-200 dark:border-slate-800"></th>
               <th
                 v-for="(head, index) in model.head"
                 :key="index"
                 :data-col-index="index"
-                class="group relative border-b border-slate-200 px-2 py-1.5 text-left text-[11px] font-medium text-slate-500"
+                class="group relative border-b border-slate-200 px-2 py-1.5 text-left text-[11px] font-medium text-slate-500 dark:border-slate-800 dark:text-slate-400"
                 :class="[
-                  isHeadSearchHit(index) ? 'bg-amber-100/80' : '',
-                  isCurrentHeadSearchHit(index) ? 'bg-amber-300/80' : '',
+                  isHeadSearchHit(index) ? 'bg-amber-100/80 dark:bg-amber-500/25' : '',
+                  isCurrentHeadSearchHit(index) ? 'bg-amber-300/80 dark:bg-amber-500/40' : '',
                 ]"
               >
                 <div v-if="model.kind === 'records'" class="group flex items-center gap-1">
@@ -69,20 +69,20 @@
                     v-model="columnText"
                     v-focus
                     spellcheck="false"
-                    class="w-28 rounded border border-amber-400 bg-white px-1 py-px text-slate-700 outline-none"
+                    class="w-28 rounded border border-amber-400 bg-white px-1 py-px text-slate-700 outline-none dark:bg-slate-900 dark:text-slate-100"
                     @keydown.enter.prevent="commitColumn(head)"
                     @keydown.esc.prevent="editingColumn = null"
                   />
                   <button
                     v-else
-                    class="cursor-text rounded px-1 py-px transition hover:bg-slate-200/70"
+                    class="cursor-text rounded px-1 py-px transition hover:bg-slate-200/70 dark:hover:bg-slate-800/70"
                     title="点击重命名列"
                     @click="startColumn(head)"
                   >
                     {{ head }}
                   </button>
                   <button
-                    class="grid h-4 w-4 place-items-center rounded text-slate-400 opacity-0 transition group-hover:opacity-100 hover:bg-red-50 hover:text-red-500"
+                    class="grid h-4 w-4 place-items-center rounded text-slate-400 opacity-0 transition group-hover:opacity-100 hover:bg-red-50 hover:text-red-500 dark:text-slate-500 dark:hover:bg-red-500/10 dark:hover:text-red-400"
                     title="删除列"
                     @click="removeColumn(head)"
                   >
@@ -106,17 +106,17 @@
               </th>
               <th
                 v-if="model.kind === 'records'"
-                class="w-10 border-b border-slate-200 px-1 py-1.5"
+                class="w-10 border-b border-slate-200 px-1 py-1.5 dark:border-slate-800"
               >
                 <button
-                  class="grid h-5 w-5 place-items-center rounded text-slate-400 transition hover:bg-slate-200 hover:text-slate-700"
+                  class="grid h-5 w-5 place-items-center rounded text-slate-400 transition hover:bg-slate-200 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300"
                   title="添加列"
                   @click="addColumn"
                 >
                   <i class="fa-solid fa-plus text-[10px]"></i>
                 </button>
               </th>
-              <th v-else-if="model.kind === 'list'" class="w-10 border-b border-slate-200"></th>
+              <th v-else-if="model.kind === 'list'" class="w-10 border-b border-slate-200 dark:border-slate-800"></th>
             </tr>
           </thead>
 
@@ -125,12 +125,12 @@
               v-for="(row, rowIndex) in model.rows"
               :key="rowIndex"
               :data-row-index="rowIndex"
-              class="group hover:bg-slate-50"
-              :class="dragFrom === rowIndex ? 'bg-amber-50 opacity-60' : ''"
+              class="group hover:bg-slate-50 dark:hover:bg-slate-900"
+              :class="dragFrom === rowIndex ? 'bg-amber-50 opacity-60 dark:bg-amber-500/10' : ''"
             >
-              <td class="w-6 border-b border-slate-100 px-0 align-middle">
+              <td class="w-6 border-b border-slate-100 px-0 align-middle dark:border-slate-800/70">
                 <button
-                  class="mx-auto grid h-6 w-5 cursor-grab touch-none place-items-center rounded text-slate-300 transition hover:bg-slate-100 hover:text-slate-500 active:cursor-grabbing"
+                  class="mx-auto grid h-6 w-5 cursor-grab touch-none place-items-center rounded text-slate-300 transition hover:bg-slate-100 hover:text-slate-500 active:cursor-grabbing dark:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-400"
                   title="拖拽调整顺序"
                   @pointerdown="onDragStart($event, rowIndex)"
                 >
@@ -141,16 +141,16 @@
                 v-for="(cell, cellIndex) in row.cells"
                 :key="cellIndex"
                 :data-cell-index="cellIndex"
-                class="border-b border-slate-100 px-1 py-0.5"
+                class="border-b border-slate-100 px-1 py-0.5 dark:border-slate-800/70"
                 :class="[
-                  isCellSearchHit(rowIndex, cellIndex) ? 'bg-amber-100/70' : '',
+                  isCellSearchHit(rowIndex, cellIndex) ? 'bg-amber-100/70 dark:bg-amber-500/20' : '',
                   isCurrentCellSearchHit(rowIndex, cellIndex)
-                    ? 'bg-amber-300/80 ring-1 ring-inset ring-amber-500'
+                    ? 'bg-amber-300/80 ring-1 ring-inset ring-amber-500 dark:bg-amber-500/35 dark:ring-amber-400'
                     : '',
                 ]"
                 @contextmenu.prevent="openCellMenu($event, rowIndex, cellIndex, row.ref, cell)"
               >
-                <span v-if="cell.kind === 'index'" class="px-2 text-[11px] text-slate-400">
+                <span v-if="cell.kind === 'index'" class="px-2 text-[11px] text-slate-400 dark:text-slate-500">
                   {{ cell.value }}
                 </span>
 
@@ -158,7 +158,7 @@
                   v-else-if="cell.kind === 'key'"
                   :value="String(cell.value)"
                   spellcheck="false"
-                  class="w-full min-w-0 rounded border border-transparent bg-transparent px-1.5 py-1 font-mono text-[12px] text-sky-700 outline-none transition hover:border-slate-200 focus:border-amber-400 focus:bg-white"
+                  class="w-full min-w-0 rounded border border-transparent bg-transparent px-1.5 py-1 font-mono text-[12px] text-sky-700 outline-none transition hover:border-slate-200 focus:border-amber-400 focus:bg-white dark:text-sky-300 dark:hover:border-slate-700 dark:focus:bg-slate-900"
                   @keydown.enter="blurOnEnter"
                   @change="onKeyChange(cell.value, $event)"
                 />
@@ -166,7 +166,7 @@
                 <!-- 该行不存在这个字段 -->
                 <div v-else-if="cell.value === undefined" class="px-0.5">
                   <button
-                    class="inline-flex items-center gap-1 rounded-md border border-dashed border-slate-300 px-1.5 py-0.5 text-[11px] text-slate-400 transition hover:border-amber-400 hover:text-amber-600"
+                    class="inline-flex items-center gap-1 rounded-md border border-dashed border-slate-300 px-1.5 py-0.5 text-[11px] text-slate-400 transition hover:border-amber-400 hover:text-amber-600 dark:border-slate-700 dark:text-slate-500 dark:hover:border-amber-500/70 dark:hover:text-amber-400"
                     title="该字段在当前行不存在，点击添加"
                     @click="addCell(row.ref, cell.column)"
                   >
@@ -186,7 +186,7 @@
 
                   <button
                     v-if="cellType(cell.value) === 'boolean'"
-                    class="min-w-0 flex-1 rounded border border-transparent px-1.5 py-1 text-left font-mono text-[12px] text-violet-600 transition hover:border-slate-200 hover:bg-white"
+                    class="min-w-0 flex-1 rounded border border-transparent px-1.5 py-1 text-left font-mono text-[12px] text-violet-600 transition hover:border-slate-200 hover:bg-white dark:text-violet-400 dark:hover:border-slate-700 dark:hover:bg-slate-900"
                     title="点击切换 true / false"
                     @click="toggleBoolean(row.ref, cell.column)"
                   >
@@ -198,7 +198,7 @@
                     :value="cellText(cell.value)"
                     spellcheck="false"
                     :placeholder="cell.value === null ? 'null' : ''"
-                    class="min-w-0 flex-1 rounded border border-transparent bg-transparent px-1.5 py-1 font-mono text-[12px] outline-none transition hover:border-slate-200 focus:border-amber-400 focus:bg-white"
+                    class="min-w-0 flex-1 rounded border border-transparent bg-transparent px-1.5 py-1 font-mono text-[12px] outline-none transition hover:border-slate-200 focus:border-amber-400 focus:bg-white dark:hover:border-slate-700 dark:focus:bg-slate-900"
                     :class="valueClass(cellType(cell.value))"
                     @keydown.enter="blurOnEnter"
                     @change="onValueChange(row.ref, cell.column, $event)"
@@ -209,10 +209,10 @@
                     :value="cellText(cell.value)"
                     spellcheck="false"
                     title="直接输入 JSON 编辑，Esc 还原"
-                    class="min-w-0 flex-1 rounded border border-transparent bg-transparent px-1.5 py-1 font-mono text-[12px] text-slate-500 outline-none transition hover:border-slate-200 focus:border-amber-400 focus:bg-white"
+                    class="min-w-0 flex-1 rounded border border-transparent bg-transparent px-1.5 py-1 font-mono text-[12px] text-slate-500 outline-none transition hover:border-slate-200 focus:border-amber-400 focus:bg-white dark:text-slate-400 dark:hover:border-slate-700 dark:focus:bg-slate-900"
                     :class="
                       invalidCells.has(cellKey(row.ref, cell.column))
-                        ? 'border-red-400 ring-1 ring-red-300'
+                        ? 'border-red-400 ring-1 ring-red-300 dark:border-red-500 dark:ring-red-500/40'
                         : ''
                     "
                     @keydown.enter="blurOnEnter"
@@ -222,7 +222,7 @@
 
                   <button
                     v-if="canDeleteCell(row.ref)"
-                    class="grid h-5 w-5 shrink-0 place-items-center rounded text-slate-300 opacity-0 transition group-hover/cell:opacity-100 hover:bg-red-50 hover:text-red-500"
+                    class="grid h-5 w-5 shrink-0 place-items-center rounded text-slate-300 opacity-0 transition group-hover/cell:opacity-100 hover:bg-red-50 hover:text-red-500 dark:text-slate-600 dark:hover:bg-red-500/10 dark:hover:text-red-400"
                     title="删除该字段"
                     @click="deleteCell(row.ref, cell.column)"
                   >
@@ -233,10 +233,10 @@
 
               <td
                 v-if="model.kind !== 'entries'"
-                class="w-10 border-b border-slate-100 px-1"
+                class="w-10 border-b border-slate-100 px-1 dark:border-slate-800/70"
               >
                 <button
-                  class="grid h-5 w-5 place-items-center rounded text-slate-400 opacity-0 transition group-hover:opacity-100 hover:bg-red-50 hover:text-red-500"
+                  class="grid h-5 w-5 place-items-center rounded text-slate-400 opacity-0 transition group-hover:opacity-100 hover:bg-red-50 hover:text-red-500 dark:text-slate-500 dark:hover:bg-red-500/10 dark:hover:text-red-400"
                   title="删除行"
                   @click="removeRow(row.ref)"
                 >
@@ -248,7 +248,7 @@
             <tr v-if="model.rows.length === 0">
               <td
                 :colspan="model.head.length + (model.kind === 'entries' ? 0 : 1) + 1"
-                class="px-3 py-6 text-center text-xs text-slate-400"
+                class="px-3 py-6 text-center text-xs text-slate-400 dark:text-slate-500"
               >
                 暂无数据
               </td>
@@ -259,11 +259,11 @@
 
       <!-- 底部操作栏 -->
       <div
-        class="flex shrink-0 items-center justify-between border-t border-slate-200 px-3 py-1.5 text-[11px] text-slate-400"
+        class="flex shrink-0 items-center justify-between border-t border-slate-200 px-3 py-1.5 text-[11px] text-slate-400 dark:border-slate-800 dark:text-slate-500"
       >
         <span>{{ model.rows.length }} 行 · {{ model.head.length }} 列</span>
         <button
-          class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-1 text-slate-600 transition hover:bg-slate-50"
+          class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-1 text-slate-600 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
           @click="addRow"
         >
           <i class="fa-solid fa-plus text-[10px]"></i>
@@ -296,19 +296,19 @@
         <div
           v-if="contextMenu"
           ref="ctxMenuEl"
-          class="fixed z-70 min-w-44 overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-xl shadow-slate-900/10"
+          class="fixed z-70 min-w-44 overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-xl shadow-slate-900/10 dark:border-slate-700 dark:bg-slate-900 dark:shadow-black/40"
           :style="{ top: `${ctxPos.top}px`, left: `${ctxPos.left}px` }"
         >
           <template v-for="(item, index) in contextItems" :key="index">
-            <div v-if="'divider' in item" class="my-1 h-px bg-slate-100"></div>
+            <div v-if="'divider' in item" class="my-1 h-px bg-slate-100 dark:bg-slate-800"></div>
             <button
               v-else
               type="button"
               class="flex w-full items-center gap-2 px-2.5 py-1.5 text-left text-[12px] transition"
               :class="
                 item.danger
-                  ? 'text-red-600 hover:bg-red-50'
-                  : 'text-slate-600 hover:bg-slate-50'
+                  ? 'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10'
+                  : 'text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800'
               "
               @click="runContextItem(item)"
             >
@@ -460,15 +460,15 @@ function cellText(value: unknown) {
 function valueClass(type: JsonType | 'undefined') {
   switch (type) {
     case 'string':
-      return 'text-amber-600';
+      return 'text-amber-600 dark:text-amber-400';
     case 'number':
-      return 'text-emerald-600';
+      return 'text-emerald-600 dark:text-emerald-400';
     case 'boolean':
-      return 'text-violet-600';
+      return 'text-violet-600 dark:text-violet-400';
     case 'null':
-      return 'text-slate-400';
+      return 'text-slate-400 dark:text-slate-500';
     default:
-      return 'text-slate-600';
+      return 'text-slate-600 dark:text-slate-300';
   }
 }
 

@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* 跟随系统配色：让滚动条、原生控件也使用深色 */
+html {
+  color-scheme: light dark;
+}
+
 /* 搜索命中的高亮（由 v-html 渲染，需使用全局样式） */
 .find-hit {
   color: inherit;
@@ -11,4 +16,16 @@
   color: #1e293b;
   background-color: #fbbf24;
   box-shadow: 0 0 0 1px #f59e0b;
+}
+
+@media (prefers-color-scheme: dark) {
+  .find-hit {
+    background-color: rgb(245 158 11 / 0.35);
+  }
+
+  .find-hit-current {
+    color: #0f172a;
+    background-color: #f59e0b;
+    box-shadow: 0 0 0 1px #fbbf24;
+  }
 }

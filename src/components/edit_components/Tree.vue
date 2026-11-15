@@ -1,12 +1,12 @@
 <template>
-  <div class="flex h-full min-h-0 flex-col bg-white">
+  <div class="flex h-full min-h-0 flex-col bg-white dark:bg-slate-950">
     <!-- JSON 无效时的提示 -->
     <div v-if="!parsed.ok" class="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
       <i class="fa-solid fa-triangle-exclamation text-2xl text-amber-500"></i>
-      <p class="text-sm font-medium text-slate-700">当前内容不是合法的 JSON，无法以树状图编辑</p>
-      <p class="max-w-md text-xs text-slate-500">{{ parsed.error }}</p>
+      <p class="text-sm font-medium text-slate-700 dark:text-slate-300">当前内容不是合法的 JSON，无法以树状图编辑</p>
+      <p class="max-w-md text-xs text-slate-500 dark:text-slate-400">{{ parsed.error }}</p>
       <button
-        class="mt-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-600 transition hover:bg-slate-50"
+        class="mt-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-600 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
         @click="emit('request-raw')"
       >
         切换到「原始文件」修复
@@ -20,7 +20,7 @@
     >
       <template v-for="row in rows" :key="row.id">
         <div
-          class="group flex items-center gap-1.5 rounded-md py-0.75 pr-2 hover:bg-slate-50"
+          class="group flex items-center gap-1.5 rounded-md py-0.75 pr-2 hover:bg-slate-50 dark:hover:bg-slate-900"
           :class="highlightId === row.id ? 'locate-highlight' : ''"
           :data-node-id="row.id"
           :style="{ paddingLeft: `${10 + row.depth * 18}px` }"
@@ -28,7 +28,7 @@
           <!-- 展开/折叠 -->
           <button
             v-if="row.expandable"
-            class="grid h-4 w-4 shrink-0 place-items-center rounded text-slate-400 transition hover:bg-slate-200 hover:text-slate-600"
+            class="grid h-4 w-4 shrink-0 place-items-center rounded text-slate-400 transition hover:bg-slate-200 hover:text-slate-600 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300"
             :aria-label="row.expanded ? '折叠' : '展开'"
             @click="toggle(row.id)"
           >
@@ -46,32 +46,34 @@
               v-model="editText"
               v-focus
               spellcheck="false"
-              class="w-32 rounded border border-amber-400 bg-white px-1 py-px text-slate-700 outline-none"
+              class="w-32 rounded border border-amber-400 bg-white px-1 py-px text-slate-700 outline-none dark:bg-slate-900 dark:text-slate-100"
               @keydown.enter.prevent="commitKey"
               @keydown.esc.prevent="cancelEdit"
             />
             <span
               v-else
-              class="cursor-text rounded px-1 transition hover:bg-slate-200/70"
+              class="cursor-text rounded px-1 transition hover:bg-slate-200/70 dark:hover:bg-slate-800/70"
               :class="[
-                row.parentType === 'array' ? 'text-slate-400' : 'text-sky-700',
-                isSearchHit(row, 'key') ? 'bg-amber-200/70' : '',
-                isCurrentSearchHit(row, 'key') ? 'bg-amber-400/80 ring-1 ring-amber-500' : '',
+                row.parentType === 'array' ? 'text-slate-400 dark:text-slate-500' : 'text-sky-700 dark:text-sky-300',
+                isSearchHit(row, 'key') ? 'bg-amber-200/70 dark:bg-amber-500/30' : '',
+                isCurrentSearchHit(row, 'key')
+                  ? 'bg-amber-400/80 ring-1 ring-amber-500 dark:bg-amber-400/40 dark:ring-amber-400'
+                  : '',
               ]"
               :title="String(row.key)"
               @click="startEditKey(row)"
             >
               {{ row.key }}
             </span>
-            <span class="text-slate-400">:</span>
+            <span class="text-slate-400 dark:text-slate-500">:</span>
           </template>
 
           <!-- 容器 -->
           <template v-if="row.expandable">
-            <span class="text-slate-400">{{ row.type === 'array' ? '[' : '{' }}</span>
-            <span v-if="!row.expanded" class="text-slate-400">…</span>
-            <span v-if="!row.expanded" class="text-slate-400">{{ row.type === 'array' ? ']' : '}' }}</span>
-            <span class="ml-1 text-[11px] text-slate-400">{{ row.size }} 项</span>
+            <span class="text-slate-400 dark:text-slate-500">{{ row.type === 'array' ? '[' : '{' }}</span>
+            <span v-if="!row.expanded" class="text-slate-400 dark:text-slate-500">…</span>
+            <span v-if="!row.expanded" class="text-slate-400 dark:text-slate-500">{{ row.type === 'array' ? ']' : '}' }}</span>
+            <span class="ml-1 text-[11px] text-slate-400 dark:text-slate-500">{{ row.size }} 项</span>
           </template>
 
           <!-- 原始值 -->
@@ -89,7 +91,7 @@
             />
             <input
               v-else-if="editType === 'null'"
-              class="w-16 rounded border border-slate-200 bg-slate-50 px-1 py-px text-slate-400 outline-none"
+              class="w-16 rounded border border-slate-200 bg-slate-50 px-1 py-px text-slate-400 outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-500"
               value="null"
               spellcheck="false"
               disabled
@@ -99,13 +101,13 @@
               v-model="editText"
               v-focus
               spellcheck="false"
-              class="min-w-24 rounded border border-amber-400 bg-white px-1 py-px text-slate-700 outline-none"
+              class="min-w-24 rounded border border-amber-400 bg-white px-1 py-px text-slate-700 outline-none dark:bg-slate-900 dark:text-slate-100"
               :class="editType === 'number' ? 'w-28' : 'w-48'"
               @keydown.enter.prevent="commitValue"
               @keydown.esc.prevent="cancelEdit"
             />
             <button
-              class="grid h-5 w-5 shrink-0 place-items-center rounded text-amber-600 transition hover:bg-amber-50"
+              class="grid h-5 w-5 shrink-0 place-items-center rounded text-amber-600 transition hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-500/10"
               title="确认"
               @click="commitValue"
             >
@@ -115,11 +117,13 @@
 
           <span
             v-else
-            class="cursor-text truncate rounded px-1 transition hover:bg-slate-200/70"
+            class="cursor-text truncate rounded px-1 transition hover:bg-slate-200/70 dark:hover:bg-slate-800/70"
             :class="[
               valueClass(row.type),
-              isSearchHit(row, 'value') ? 'bg-amber-200/70' : '',
-              isCurrentSearchHit(row, 'value') ? 'bg-amber-400/80 ring-1 ring-amber-500' : '',
+              isSearchHit(row, 'value') ? 'bg-amber-200/70 dark:bg-amber-500/30' : '',
+              isCurrentSearchHit(row, 'value')
+                ? 'bg-amber-400/80 ring-1 ring-amber-500 dark:bg-amber-400/40 dark:ring-amber-400'
+                : '',
             ]"
             :title="valueText(row)"
             @click="startEditValue(row)"
@@ -133,7 +137,7 @@
           >
             <button
               v-if="row.expandable"
-              class="grid h-5 w-5 place-items-center rounded text-slate-400 transition hover:bg-slate-200 hover:text-slate-700"
+              class="grid h-5 w-5 place-items-center rounded text-slate-400 transition hover:bg-slate-200 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300"
               title="添加"
               @click="startAdd(row)"
             >
@@ -141,7 +145,7 @@
             </button>
             <button
               v-if="row.path.length > 0"
-              class="grid h-5 w-5 place-items-center rounded text-slate-400 transition hover:bg-red-50 hover:text-red-500"
+              class="grid h-5 w-5 place-items-center rounded text-slate-400 transition hover:bg-red-50 hover:text-red-500 dark:text-slate-500 dark:hover:bg-red-500/10 dark:hover:text-red-400"
               title="删除"
               @click="remove(row)"
             >
@@ -156,18 +160,18 @@
           class="flex items-center gap-1.5 rounded-md py-0.75 pr-2"
           :style="{ paddingLeft: `${10 + row.depth * 18 + 22}px` }"
         >
-          <span class="text-slate-400">+</span>
+          <span class="text-slate-400 dark:text-slate-500">+</span>
           <input
             v-model="adding.key"
             v-focus
             placeholder="字段名"
             spellcheck="false"
-            class="w-32 rounded border border-amber-400 bg-white px-1 py-px text-sky-700 outline-none"
+            class="w-32 rounded border border-amber-400 bg-white px-1 py-px text-sky-700 outline-none dark:bg-slate-900 dark:text-sky-300"
             @keydown.enter.prevent="commitAdd"
             @keydown.esc.prevent="cancelAdd"
           />
-          <span class="text-slate-400">:</span>
-          <span class="text-slate-400">""</span>
+          <span class="text-slate-400 dark:text-slate-500">:</span>
+          <span class="text-slate-400 dark:text-slate-500">""</span>
           <button
             class="grid h-5 w-5 place-items-center rounded text-amber-600 transition hover:bg-amber-50"
             title="确认"
@@ -584,15 +588,15 @@ function valueText(row: Row) {
 function valueClass(type: JsonType) {
   switch (type) {
     case 'string':
-      return 'text-amber-600';
+      return 'text-amber-600 dark:text-amber-400';
     case 'number':
-      return 'text-emerald-600';
+      return 'text-emerald-600 dark:text-emerald-400';
     case 'boolean':
-      return 'text-violet-600';
+      return 'text-violet-600 dark:text-violet-400';
     case 'null':
-      return 'text-slate-400';
+      return 'text-slate-400 dark:text-slate-500';
     default:
-      return 'text-slate-600';
+      return 'text-slate-600 dark:text-slate-300';
   }
 }
 
@@ -603,14 +607,23 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .locate-highlight {
+  --locate-bg: #fef3c7;
+  --locate-ring: #fcd34d;
   animation: locate-flash 2s ease-out;
+}
+
+@media (prefers-color-scheme: dark) {
+  .locate-highlight {
+    --locate-bg: rgb(245 158 11 / 0.28);
+    --locate-ring: rgb(251 191 36 / 0.6);
+  }
 }
 
 @keyframes locate-flash {
   0%,
   30% {
-    background-color: #fef3c7;
-    box-shadow: inset 0 0 0 1px #fcd34d;
+    background-color: var(--locate-bg);
+    box-shadow: inset 0 0 0 1px var(--locate-ring);
   }
   100% {
     background-color: transparent;

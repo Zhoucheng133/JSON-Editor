@@ -2,7 +2,7 @@
   <button
     ref="triggerEl"
     type="button"
-    class="inline-flex shrink-0 items-center justify-center gap-1 rounded-md border border-slate-200 bg-white text-slate-600 outline-none transition hover:border-slate-300 hover:bg-slate-50 focus:border-amber-400"
+    class="inline-flex shrink-0 items-center justify-center gap-1 rounded-md border border-slate-200 bg-white text-slate-600 outline-none transition hover:border-slate-300 hover:bg-slate-50 focus:border-amber-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:bg-slate-800"
     :class="compact ? 'h-6 w-6' : 'px-1.5 py-1 text-[11px]'"
     :title="current?.label"
     @click.stop="toggle"
@@ -11,7 +11,7 @@
     <i class="fa-solid text-[10px]" :class="current?.icon" :style="{ color: current?.color }"></i>
     <template v-if="!compact">
       <span class="whitespace-nowrap">{{ current?.label }}</span>
-      <i class="fa-solid fa-chevron-down text-[8px] text-slate-400"></i>
+      <i class="fa-solid fa-chevron-down text-[8px] text-slate-400 dark:text-slate-500"></i>
     </template>
   </button>
 
@@ -20,15 +20,15 @@
       <div
         v-if="open"
         ref="menuEl"
-        class="fixed z-60 min-w-32 overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-xl shadow-slate-900/10"
+        class="fixed z-60 min-w-32 overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-xl shadow-slate-900/10 dark:border-slate-700 dark:bg-slate-900 dark:shadow-black/40"
         :style="{ top: `${pos.top}px`, left: `${pos.left}px` }"
       >
         <button
           v-for="option in options"
           :key="option.value"
           type="button"
-          class="flex w-full items-center gap-2 px-2.5 py-1.5 text-left text-[11px] transition hover:bg-slate-50"
-          :class="option.value === modelValue ? 'font-medium text-slate-800' : 'text-slate-600'"
+          class="flex w-full items-center gap-2 px-2.5 py-1.5 text-left text-[11px] transition hover:bg-slate-50 dark:hover:bg-slate-800"
+          :class="option.value === modelValue ? 'font-medium text-slate-800 dark:text-slate-100' : 'text-slate-600 dark:text-slate-300'"
           @click="select(option.value)"
         >
           <i
@@ -39,7 +39,7 @@
           <span class="flex-1 whitespace-nowrap">{{ option.label }}</span>
           <i
             v-if="option.value === modelValue"
-            class="fa-solid fa-check text-[9px] text-amber-500"
+            class="fa-solid fa-check text-[9px] text-amber-500 dark:text-amber-400"
           ></i>
         </button>
       </div>

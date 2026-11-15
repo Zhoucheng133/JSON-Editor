@@ -1,9 +1,9 @@
 <template>
-  <div class="flex h-full min-h-0 flex-col bg-white">
+  <div class="flex h-full min-h-0 flex-col bg-white dark:bg-slate-950">
     <div class="relative flex min-h-0 flex-1">
       <!-- 行号 -->
-      <div class="w-12 shrink-0 overflow-hidden border-r border-slate-200 bg-slate-50/70">
-        <div ref="gutterEl" class="py-3 font-mono text-[13px] leading-6 text-slate-300 select-none">
+      <div class="w-12 shrink-0 overflow-hidden border-r border-slate-200 bg-slate-50/70 dark:border-slate-800 dark:bg-slate-900/70">
+        <div ref="gutterEl" class="py-3 font-mono text-[13px] leading-6 text-slate-300 select-none dark:text-slate-600">
           <div v-for="n in lineCount" :key="n" class="pr-2 text-right">{{ n }}</div>
         </div>
       </div>
@@ -21,7 +21,7 @@
           v-model="text"
           spellcheck="false"
           wrap="off"
-          class="relative h-full w-full resize-none bg-transparent p-3 font-mono text-[13px] leading-6 text-transparent caret-slate-800 outline-none selection:bg-amber-300/40 placeholder:text-slate-300"
+          class="relative h-full w-full resize-none bg-transparent p-3 font-mono text-[13px] leading-6 text-transparent caret-slate-800 outline-none selection:bg-amber-300/40 placeholder:text-slate-300 dark:caret-slate-100 dark:placeholder:text-slate-600 dark:selection:bg-amber-400/30"
           placeholder="在这里直接编辑 JSON 文本…"
           @input="scheduleCommit"
           @blur="flush"
@@ -32,8 +32,8 @@
 
     <!-- 状态栏 -->
     <div
-      class="flex shrink-0 items-center gap-2 border-t border-slate-200 px-3 py-1.5 text-[11px]"
-      :class="status.ok ? 'bg-white text-slate-400' : 'bg-red-50 text-red-600'"
+      class="flex shrink-0 items-center gap-2 border-t border-slate-200 px-3 py-1.5 text-[11px] dark:border-slate-800"
+      :class="status.ok ? 'bg-white text-slate-400 dark:bg-slate-950 dark:text-slate-500' : 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400'"
     >
       <i
         class="fa-solid text-[10px]"

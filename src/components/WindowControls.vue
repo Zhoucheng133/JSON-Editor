@@ -6,7 +6,7 @@
     @dblclick.stop
   >
     <button
-      class="flex h-10 w-11 items-center justify-center text-slate-500 transition-colors hover:bg-slate-900/6 hover:text-slate-700"
+      class="flex h-10 w-11 items-center justify-center text-slate-500 transition-colors hover:bg-slate-900/6 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-100/10 dark:hover:text-slate-200"
       title="最小化"
       aria-label="最小化"
       @click="minimize"
@@ -14,7 +14,7 @@
       <i class="fa-solid fa-minus text-[11px]"></i>
     </button>
     <button
-      class="flex h-10 w-11 items-center justify-center text-slate-500 transition-colors hover:bg-slate-900/6 hover:text-slate-700"
+      class="flex h-10 w-11 items-center justify-center text-slate-500 transition-colors hover:bg-slate-900/6 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-100/10 dark:hover:text-slate-200"
       :title="maximized ? '向下还原' : '最大化'"
       :aria-label="maximized ? '向下还原' : '最大化'"
       @click="toggleMaximize"
@@ -22,7 +22,7 @@
       <i class="fa-solid text-[11px]" :class="maximized ? 'fa-window-restore' : 'fa-window-maximize'"></i>
     </button>
     <button
-      class="flex h-10 w-11 items-center justify-center text-slate-500 transition-colors hover:bg-red-500 hover:text-white"
+      class="flex h-10 w-11 items-center justify-center text-slate-500 transition-colors hover:bg-red-500 hover:text-white dark:text-slate-400"
       title="关闭"
       aria-label="关闭"
       @click="close"

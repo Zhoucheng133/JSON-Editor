@@ -1,21 +1,21 @@
 <template>
   <div
-    class="relative flex h-screen w-screen flex-col overflow-hidden bg-[#f6f7f9] text-slate-800"
+    class="relative flex h-screen w-screen flex-col overflow-hidden bg-[#f6f7f9] text-slate-800 dark:bg-slate-950 dark:text-slate-200"
   >
     <!-- 标题栏（窗口拖拽区域） -->
     <header
       data-tauri-drag-region="deep"
-      class="relative z-20 flex h-10 shrink-0 items-center gap-2 border-b border-slate-200 bg-white"
+      class="relative z-20 flex h-10 shrink-0 items-center gap-2 border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900"
       :class="[leftPad, rightPad]"
     >
       <!-- 文件信息 -->
       <div class="flex min-w-0 flex-1 items-center gap-2">
         <div
-          class="grid h-5 w-5 shrink-0 place-items-center rounded-md bg-amber-50 text-amber-600 ring-1 ring-inset ring-amber-100"
+          class="grid h-5 w-5 shrink-0 place-items-center rounded-md bg-amber-50 text-amber-600 ring-1 ring-inset ring-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:ring-amber-500/20"
         >
           <i class="fa-solid fa-file-code text-[10px]"></i>
         </div>
-        <span class="max-w-60 shrink-0 truncate text-[12px] font-medium text-slate-800">
+        <span class="max-w-60 shrink-0 truncate text-[12px] font-medium text-slate-800 dark:text-slate-100">
           {{ name || '未命名' }}
         </span>
         <span
@@ -24,7 +24,7 @@
           title="有未保存的修改"
         ></span>
         <span
-          class="hidden min-w-0 truncate font-mono text-[11px] text-slate-400 lg:block"
+          class="hidden min-w-0 truncate font-mono text-[11px] text-slate-400 lg:block dark:text-slate-500"
           :title="path"
         >
           {{ path }}
@@ -32,23 +32,23 @@
       </div>
 
       <!-- 与窗口控制按钮之间的分隔线 -->
-      <div v-if="isTauri && !isMac" class="h-4 w-px shrink-0 bg-slate-200"></div>
+      <div v-if="isTauri && !isMac" class="h-4 w-px shrink-0 bg-slate-200 dark:bg-slate-700"></div>
     </header>
 
     <!-- 工具栏 -->
     <div
-      class="relative z-10 flex h-12 shrink-0 items-center gap-3 border-b border-slate-200 bg-white/90 px-3 backdrop-blur"
+      class="relative z-10 flex h-12 shrink-0 items-center gap-3 border-b border-slate-200 bg-white/90 px-3 backdrop-blur dark:border-slate-800 dark:bg-slate-900/90"
     >
       <!-- 编辑方式切换 -->
-      <div class="flex shrink-0 items-center gap-0.5 rounded-lg bg-slate-100 p-0.5">
+      <div class="flex shrink-0 items-center gap-0.5 rounded-lg bg-slate-100 p-0.5 dark:bg-slate-800">
         <button
           v-for="tab in tabs"
           :key="tab.id"
           class="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[12px] font-medium transition"
           :class="
             mode === tab.id
-              ? 'bg-white text-slate-800 shadow-sm'
-              : 'text-slate-500 hover:text-slate-700'
+              ? 'bg-white text-slate-800 shadow-sm dark:bg-slate-700 dark:text-slate-100'
+              : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
           "
           @click="mode = tab.id"
         >
@@ -60,7 +60,7 @@
       <!-- 操作按钮 -->
       <div class="ml-auto flex shrink-0 items-center gap-1">
         <button
-          class="grid h-8 w-8 place-items-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:bg-transparent"
+          class="grid h-8 w-8 place-items-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:bg-transparent dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 dark:disabled:hover:bg-transparent"
           title="撤销 (⌘Z)"
           :disabled="!canUndo"
           @click="undo"
@@ -68,7 +68,7 @@
           <i class="fa-solid fa-rotate-left text-[13px]"></i>
         </button>
         <button
-          class="grid h-8 w-8 place-items-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:bg-transparent"
+          class="grid h-8 w-8 place-items-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:bg-transparent dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 dark:disabled:hover:bg-transparent"
           title="恢复 (⇧⌘Z)"
           :disabled="!canRedo"
           @click="redo"
@@ -76,27 +76,27 @@
           <i class="fa-solid fa-rotate-right text-[13px]"></i>
         </button>
         <button
-          class="grid h-8 w-8 place-items-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
+          class="grid h-8 w-8 place-items-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
           :title="`搜索 (${isMac ? '⌘F' : 'Ctrl+F'})`"
           @click="openSearch"
         >
           <i class="fa-solid fa-magnifying-glass text-[13px]"></i>
         </button>
         <button
-          class="grid h-8 w-8 place-items-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
+          class="grid h-8 w-8 place-items-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
           title="格式化"
           @click="format"
         >
           <i class="fa-solid fa-indent text-[13px]"></i>
         </button>
 
-        <div class="mx-1 h-5 w-px bg-slate-200"></div>
+        <div class="mx-1 h-5 w-px bg-slate-200 dark:bg-slate-700"></div>
 
         <button
           class="inline-flex h-8 items-center gap-1.5 rounded-lg px-3 text-[12px] font-semibold transition disabled:cursor-not-allowed"
           :class="
             saving || !dirty
-              ? 'bg-slate-100 text-slate-400'
+              ? 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500'
               : 'bg-linear-to-r from-amber-400 to-amber-500 text-white shadow-sm shadow-amber-500/20 hover:brightness-105'
           "
           :disabled="saving || !dirty"
@@ -107,7 +107,7 @@
           保存
         </button>
         <button
-          class="grid h-8 w-8 place-items-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
+          class="grid h-8 w-8 place-items-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
           title="关闭文件"
           @click="requestClose"
         >
@@ -140,26 +140,26 @@
       <Transition name="find">
         <div
           v-if="searchOpen"
-          class="absolute right-3 top-2 z-30 flex items-center gap-1 rounded-xl border border-slate-200 bg-white/95 px-2 py-1.5 shadow-lg shadow-slate-900/10 backdrop-blur"
+          class="absolute right-3 top-2 z-30 flex items-center gap-1 rounded-xl border border-slate-200 bg-white/95 px-2 py-1.5 shadow-lg shadow-slate-900/10 backdrop-blur dark:border-slate-700 dark:bg-slate-900/95 dark:shadow-black/40"
         >
-          <i class="fa-solid fa-magnifying-glass shrink-0 text-[11px] text-slate-400"></i>
+          <i class="fa-solid fa-magnifying-glass shrink-0 text-[11px] text-slate-400 dark:text-slate-500"></i>
           <input
             ref="searchInputEl"
             v-model="searchQuery"
             spellcheck="false"
             placeholder="搜索当前视图"
-            class="w-52 bg-transparent text-[12px] text-slate-700 outline-none placeholder:text-slate-400"
+            class="w-52 bg-transparent text-[12px] text-slate-700 outline-none placeholder:text-slate-400 dark:text-slate-200 dark:placeholder:text-slate-500"
             @keydown.enter.prevent="stepSearch($event.shiftKey ? -1 : 1)"
             @keydown.esc.prevent="closeSearch"
           />
           <span
             class="min-w-12 shrink-0 text-right text-[11px] tabular-nums"
-            :class="searchQuery && searchCount === 0 ? 'text-red-500' : 'text-slate-400'"
+            :class="searchQuery && searchCount === 0 ? 'text-red-500 dark:text-red-400' : 'text-slate-400 dark:text-slate-500'"
           >
             {{ searchQuery ? `${searchCount === 0 ? 0 : searchIndex + 1}/${searchCount}` : '' }}
           </span>
           <button
-            class="grid h-6 w-6 shrink-0 place-items-center rounded-md text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
+            class="grid h-6 w-6 shrink-0 place-items-center rounded-md text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-200 dark:disabled:hover:bg-transparent"
             title="上一个 (⇧ Enter)"
             :disabled="searchCount === 0"
             @click="stepSearch(-1)"
@@ -167,7 +167,7 @@
             <i class="fa-solid fa-chevron-up text-[10px]"></i>
           </button>
           <button
-            class="grid h-6 w-6 shrink-0 place-items-center rounded-md text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
+            class="grid h-6 w-6 shrink-0 place-items-center rounded-md text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-200 dark:disabled:hover:bg-transparent"
             title="下一个 (Enter)"
             :disabled="searchCount === 0"
             @click="stepSearch(1)"
@@ -175,7 +175,7 @@
             <i class="fa-solid fa-chevron-down text-[10px]"></i>
           </button>
           <button
-            class="grid h-6 w-6 shrink-0 place-items-center rounded-md text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+            class="grid h-6 w-6 shrink-0 place-items-center rounded-md text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-200"
             title="关闭 (Esc)"
             @click="closeSearch"
           >
@@ -195,10 +195,10 @@
           class="flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-medium shadow-lg"
           :class="
             toastState.type === 'error'
-              ? 'border-red-200 bg-red-50 text-red-600'
+              ? 'border-red-200 bg-red-50 text-red-600 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-400'
               : toastState.type === 'info'
-                ? 'border-slate-200 bg-white text-slate-600'
-                : 'border-amber-200 bg-amber-50 text-amber-700'
+                ? 'border-slate-200 bg-white text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300'
+                : 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300'
           "
         >
           <i

@@ -9,11 +9,9 @@
         "minHeight": 420,
         "center": true,
         "visible": false,
-        "theme": "Light",
         "decorations": true,
         "titleBarStyle": "Overlay",
-        "hiddenTitle": true,
-        "backgroundColor": "#f6f7f9"
+        "hiddenTitle": true
       }
     ]
   }

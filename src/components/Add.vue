@@ -1,17 +1,17 @@
 <template>
   <div
     data-tauri-drag-region="deep"
-    class="relative flex h-screen w-screen flex-col overflow-hidden bg-[#f6f7f9] text-slate-800"
+    class="relative flex h-screen w-screen flex-col overflow-hidden bg-[#f6f7f9] text-slate-800 dark:bg-slate-950 dark:text-slate-200"
   >
     <!-- 背景氛围 -->
     <div
       class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_-10%,rgba(245,158,11,0.10),transparent_45%),radial-gradient(circle_at_88%_8%,rgba(251,191,36,0.06),transparent_42%)]"
     ></div>
     <div
-      class="pointer-events-none absolute inset-0 opacity-[0.035]"
+      class="pointer-events-none absolute inset-0 text-slate-900 opacity-[0.035] dark:text-slate-100"
       style="
-        background-image: linear-gradient(to right, #0f172a 1px, transparent 1px),
-          linear-gradient(to bottom, #0f172a 1px, transparent 1px);
+        background-image: linear-gradient(to right, currentColor 1px, transparent 1px),
+          linear-gradient(to bottom, currentColor 1px, transparent 1px);
         background-size: 36px 36px;
       "
     ></div>
@@ -19,8 +19,8 @@
     <main class="relative z-10 flex flex-1 items-center justify-center px-6 pb-10">
       <section class="w-full max-w-140">
         <div class="mb-7 text-center">
-          <h1 class="text-2xl font-semibold tracking-tight text-slate-900">打开 JSON 文件</h1>
-          <p class="mt-2 text-sm text-slate-500">拖拽文件到下方，或从本地选择，即可开始编辑</p>
+          <h1 class="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">打开 JSON 文件</h1>
+          <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">拖拽文件到下方，或从本地选择，即可开始编辑</p>
         </div>
 
         <Transition name="fade-slide" mode="out-in">
@@ -29,32 +29,32 @@
             v-if="picked"
             key="preview"
             data-tauri-drag-region="false"
-            class="pop-in rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xl shadow-slate-900/5"
+            class="pop-in rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xl shadow-slate-900/5 dark:border-slate-800 dark:bg-slate-900 dark:shadow-black/30"
           >
             <div class="flex items-start gap-3">
               <div
-                class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-amber-50 text-amber-600 ring-1 ring-inset ring-amber-100"
+                class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-amber-50 text-amber-600 ring-1 ring-inset ring-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:ring-amber-500/20"
               >
                 <i class="fa-solid fa-file-code"></i>
               </div>
               <div class="min-w-0 flex-1 pt-0.5">
-                <p class="truncate text-sm font-medium text-slate-900" :title="picked.path">
+                <p class="truncate text-sm font-medium text-slate-900 dark:text-slate-100" :title="picked.path">
                   {{ picked.name }}
                 </p>
-                <p class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-slate-500">
+                <p class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-slate-500 dark:text-slate-400">
                   <span>{{ formatSize(picked.size) }}</span>
-                  <span class="h-0.5 w-0.5 rounded-full bg-slate-300"></span>
+                  <span class="h-0.5 w-0.5 rounded-full bg-slate-300 dark:bg-slate-600"></span>
                   <span>{{ picked.summary.detail }}</span>
                 </p>
               </div>
               <span
-                class="mt-0.5 inline-flex shrink-0 items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700"
+                class="mt-0.5 inline-flex shrink-0 items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300"
               >
                 <i class="fa-solid fa-circle-check"></i>
                 有效
               </span>
               <button
-                class="-mr-1 -mt-1 rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+                class="-mr-1 -mt-1 rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300"
                 aria-label="移除文件"
                 @click.stop="resetPicked"
               >
@@ -62,20 +62,20 @@
               </button>
             </div>
 
-            <div class="relative mt-4 overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
-              <div class="flex items-center gap-1.5 border-b border-slate-200 px-3 py-2">
+            <div class="relative mt-4 overflow-hidden rounded-xl border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-950/60">
+              <div class="flex items-center gap-1.5 border-b border-slate-200 px-3 py-2 dark:border-slate-800">
                 <span class="h-2 w-2 rounded-full bg-red-300"></span>
                 <span class="h-2 w-2 rounded-full bg-amber-300"></span>
                 <span class="h-2 w-2 rounded-full bg-emerald-300"></span>
-                <span class="ml-2 truncate font-mono text-[10px] text-slate-400">
+                <span class="ml-2 truncate font-mono text-[10px] text-slate-400 dark:text-slate-500">
                   {{ picked.path }}
                 </span>
               </div>
               <pre
-                class="max-h-40 overflow-hidden p-3 font-mono text-[11px] leading-5 text-slate-600"
+                class="max-h-40 overflow-hidden p-3 font-mono text-[11px] leading-5 text-slate-600 dark:text-slate-300"
               ><code>{{ prettyPreview }}</code></pre>
               <div
-                class="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-linear-to-t from-white to-transparent"
+                class="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-linear-to-t from-white to-transparent dark:from-slate-950"
               ></div>
             </div>
 
@@ -88,7 +88,7 @@
                 <i class="fa-solid fa-arrow-right text-xs"></i>
               </button>
               <button
-                class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"
+                class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:bg-slate-800"
                 @click="pickFile"
               >
                 <i class="fa-solid fa-rotate-right text-xs"></i>
@@ -107,8 +107,8 @@
             class="group relative flex min-h-75 cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border border-dashed px-8 py-10 text-center outline-none transition-all duration-300 focus-visible:border-amber-400 focus-visible:ring-2 focus-visible:ring-amber-400/20"
             :class="[
               isDragging
-                ? 'scale-[1.01] border-amber-400 bg-amber-50/70 shadow-[0_20px_60px_-25px_rgba(245,158,11,0.45)]'
-                : 'border-slate-300 bg-white/70 hover:border-amber-300 hover:bg-white',
+                ? 'scale-[1.01] border-amber-400 bg-amber-50/70 shadow-[0_20px_60px_-25px_rgba(245,158,11,0.45)] dark:border-amber-500/70 dark:bg-amber-500/10'
+                : 'border-slate-300 bg-white/70 hover:border-amber-300 hover:bg-white dark:border-slate-700 dark:bg-slate-900/60 dark:hover:border-amber-500/60 dark:hover:bg-slate-900',
               loading ? 'cursor-wait' : '',
             ]"
             @click="pickFile"
@@ -120,11 +120,11 @@
             @drop="onDrop"
           >
             <div
-              class="pointer-events-none absolute inset-x-10 top-0 h-px bg-linear-to-r from-transparent via-slate-200 to-transparent"
+              class="pointer-events-none absolute inset-x-10 top-0 h-px bg-linear-to-r from-transparent via-slate-200 to-transparent dark:via-slate-800"
             ></div>
 
             <div
-              class="relative mb-5 grid h-18.5 w-18.5 place-items-center rounded-2xl border border-slate-200 bg-white shadow-sm transition-transform duration-300 group-hover:-translate-y-0.5"
+              class="relative mb-5 grid h-18.5 w-18.5 place-items-center rounded-2xl border border-slate-200 bg-white shadow-sm transition-transform duration-300 group-hover:-translate-y-0.5 dark:border-slate-700 dark:bg-slate-900"
               :class="isDragging ? 'scale-105 border-amber-300' : ''"
             >
               <div
@@ -141,27 +141,27 @@
               ></i>
               <i
                 v-else
-                class="fa-solid fa-cloud-arrow-up text-2xl text-slate-400 transition-colors group-hover:text-amber-500"
+                class="fa-solid fa-cloud-arrow-up text-2xl text-slate-400 transition-colors group-hover:text-amber-500 dark:text-slate-500"
               ></i>
             </div>
 
-            <p class="text-[15px] font-medium text-slate-800">
+            <p class="text-[15px] font-medium text-slate-800 dark:text-slate-200">
               {{
                 loading ? '正在读取文件…' : isDragging ? '松开即可添加文件' : '拖拽 JSON 文件到此处'
               }}
             </p>
-            <p class="mt-1.5 text-xs text-slate-500">
+            <p class="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
               <template v-if="loading">正在校验 JSON 内容，请稍候</template>
               <template v-else>
                 或
-                <span class="text-amber-600 underline decoration-amber-300 underline-offset-4">
+                <span class="text-amber-600 underline decoration-amber-300 underline-offset-4 dark:text-amber-400 dark:decoration-amber-500/60">
                   点击浏览本地文件
                 </span>
               </template>
             </p>
 
-            <div class="mt-6 flex items-center gap-2 text-[11px] text-slate-400">
-              <span class="rounded-md border border-slate-200 bg-white px-1.5 py-0.5 font-mono">
+            <div class="mt-6 flex items-center gap-2 text-[11px] text-slate-400 dark:text-slate-500">
+              <span class="rounded-md border border-slate-200 bg-white px-1.5 py-0.5 font-mono dark:border-slate-700 dark:bg-slate-900">
                 {{ shortcutLabel }}
               </span>
               <span>快速打开</span>
@@ -172,13 +172,13 @@
         <Transition name="fade-slide">
           <div
             v-if="error"
-            class="mt-3 flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-xs text-red-600"
+            class="mt-3 flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-xs text-red-600 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-400"
             role="alert"
           >
             <i class="fa-solid fa-triangle-exclamation mt-0.5"></i>
             <p class="flex-1 leading-relaxed">{{ error }}</p>
             <button
-              class="-mr-1 rounded p-0.5 text-red-400 transition hover:text-red-600"
+              class="-mr-1 rounded p-0.5 text-red-400 transition hover:text-red-600 dark:hover:text-red-300"
               aria-label="关闭提示"
               @click="clearError"
             >
@@ -187,7 +187,7 @@
           </div>
         </Transition>
 
-        <p class="mt-4 text-center text-[11px] text-slate-400">
+        <p class="mt-4 text-center text-[11px] text-slate-400 dark:text-slate-500">
           支持 .json 文件 · 单文件最大 {{ MAX_SIZE_MB }} MB
         </p>
       </section>
@@ -200,7 +200,7 @@
         class="pointer-events-none fixed inset-2 z-30 rounded-2xl border-2 border-amber-400/70 bg-amber-400/6 shadow-[inset_0_0_80px_rgba(245,158,11,0.10)]"
       >
         <div
-          class="absolute left-1/2 top-6 flex -translate-x-1/2 items-center gap-2 rounded-full border border-amber-200 bg-white/95 px-4 py-1.5 text-xs font-medium text-amber-600 shadow-xl"
+          class="absolute left-1/2 top-6 flex -translate-x-1/2 items-center gap-2 rounded-full border border-amber-200 bg-white/95 px-4 py-1.5 text-xs font-medium text-amber-600 shadow-xl dark:border-amber-500/30 dark:bg-slate-900/95 dark:text-amber-300"
         >
           <i class="fa-solid fa-arrow-down"></i>
           松开即可添加文件
