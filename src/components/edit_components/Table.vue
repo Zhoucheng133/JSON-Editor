@@ -58,6 +58,10 @@
                 :key="index"
                 :data-col-index="index"
                 class="group relative border-b border-slate-200 px-2 py-1.5 text-left text-[11px] font-medium text-slate-500"
+                :class="[
+                  isHeadSearchHit(index) ? 'bg-amber-100/80' : '',
+                  isCurrentHeadSearchHit(index) ? 'bg-amber-300/80' : '',
+                ]"
               >
                 <div v-if="model.kind === 'records'" class="group flex items-center gap-1">
                   <input
@@ -136,7 +140,14 @@
               <td
                 v-for="(cell, cellIndex) in row.cells"
                 :key="cellIndex"
+                :data-cell-index="cellIndex"
                 class="border-b border-slate-100 px-1 py-0.5"
+                :class="[
+                  isCellSearchHit(rowIndex, cellIndex) ? 'bg-amber-100/70' : '',
+                  isCurrentCellSearchHit(rowIndex, cellIndex)
+                    ? 'bg-amber-300/80 ring-1 ring-inset ring-amber-500'
+                    : '',
+                ]"
                 @contextmenu.prevent="openCellMenu($event, rowIndex, cellIndex, row.ref, cell)"
               >
                 <span v-if="cell.kind === 'index'" class="px-2 text-[11px] text-slate-400">
@@ -330,12 +341,16 @@ import {
   type JsonType,
 } from '../../utils/json.ts';
 import DropSelect from './DropSelect.vue';
+import { containsQuery } from '../../utils/search.ts';
+
+const props = defineProps<{ search?: { query: string; index: number } | null }>();
 
 const emit = defineEmits<{
   (e: 'request-raw'): void;
   (e: 'request-tree'): void;
   (e: 'locate', path: JsonPath): void;
   (e: 'notify', message: string, type?: 'success' | 'error' | 'info'): void;
+  (e: 'search-count', count: number): void;
 }>();
 
 const store = useStore();
@@ -456,6 +471,90 @@ function valueClass(type: JsonType | 'undefined') {
       return 'text-slate-600';
   }
 }
+
+/* ---------------- 搜索 ---------------- */
+type SearchHit =
+  | { kind: 'head'; column: number; key: string }
+  | { kind: 'cell'; row: number; cell: number; key: string };
+
+const searchHits = computed<SearchHit[]>(() => {
+  const m = model.value;
+  const query = props.search?.query ?? '';
+  if (!m || !query) return [];
+
+  const hits: SearchHit[] = [];
+
+  // 对象数组的表头就是字段名，也纳入搜索
+  if (m.kind === 'records') {
+    m.head.forEach((head, column) => {
+      if (containsQuery(head, query)) hits.push({ kind: 'head', column, key: `head:${column}` });
+    });
+  }
+
+  m.rows.forEach((row, rowIndex) => {
+    row.cells.forEach((cell, cellIndex) => {
+      if (cell.kind === 'index' || cell.value === undefined) return;
+      const text =
+        cell.kind === 'key'
+          ? String(cell.value)
+          : cell.value === null
+            ? 'null'
+            : cellText(cell.value);
+      if (containsQuery(text, query)) {
+        hits.push({
+          kind: 'cell',
+          row: rowIndex,
+          cell: cellIndex,
+          key: `cell:${rowIndex}:${cellIndex}`,
+        });
+      }
+    });
+  });
+
+  return hits;
+});
+
+const searchHitKeys = computed(() => new Set(searchHits.value.map((hit) => hit.key)));
+const currentSearchHit = computed(() => searchHits.value[props.search?.index ?? 0] ?? null);
+const currentSearchKey = computed(() => currentSearchHit.value?.key ?? null);
+
+function isCellSearchHit(rowIndex: number, cellIndex: number) {
+  return searchHitKeys.value.has(`cell:${rowIndex}:${cellIndex}`);
+}
+
+function isCurrentCellSearchHit(rowIndex: number, cellIndex: number) {
+  return currentSearchKey.value === `cell:${rowIndex}:${cellIndex}`;
+}
+
+function isHeadSearchHit(column: number) {
+  return searchHitKeys.value.has(`head:${column}`);
+}
+
+function isCurrentHeadSearchHit(column: number) {
+  return currentSearchKey.value === `head:${column}`;
+}
+
+watch(
+  () => searchHits.value.length,
+  (count) => emit('search-count', count),
+  { immediate: true },
+);
+
+watch(
+  currentSearchHit,
+  async (hit) => {
+    if (!hit) return;
+    await nextTick();
+    const el =
+      hit.kind === 'head'
+        ? tableRef.value?.querySelector<HTMLElement>(`th[data-col-index="${hit.column}"]`)
+        : tbodyRef.value?.querySelector<HTMLElement>(
+            `tr[data-row-index="${hit.row}"] td[data-cell-index="${hit.cell}"]`,
+          );
+    el?.scrollIntoView({ block: 'center', inline: 'center', behavior: 'smooth' });
+  },
+  { immediate: true },
+);
 
 function currentValue(ref_: RowRef, column?: string | number) {
   if (!parsed.value.ok) return undefined;

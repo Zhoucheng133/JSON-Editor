@@ -1,1 +1,14 @@
 @import "tailwindcss";
+
+/* 搜索命中的高亮（由 v-html 渲染，需使用全局样式） */
+.find-hit {
+  color: inherit;
+  background-color: rgb(253 230 138 / 0.75);
+  border-radius: 2px;
+}
+
+.find-hit-current {
+  color: #1e293b;
+  background-color: #fbbf24;
+  box-shadow: 0 0 0 1px #f59e0b;
+}

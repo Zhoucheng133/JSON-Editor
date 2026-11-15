@@ -50,6 +50,11 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia';
 import useStore from '../../store/index.ts';
 import { highlightJson, parseJson } from '../../utils/json.ts';
+import { findMatches } from '../../utils/search.ts';
+
+const props = defineProps<{ search?: { query: string; index: number } | null }>();
+
+const emit = defineEmits<{ (e: 'search-count', count: number): void }>();
 
 const store = useStore();
 const { content } = storeToRefs(store);
@@ -61,8 +66,50 @@ const textareaEl = ref<HTMLTextAreaElement | null>(null);
 
 const status = computed(() => parseJson(text.value));
 const lineCount = computed(() => text.value.split('\n').length);
+
+/* ---------------- 搜索 ---------------- */
+const searchMatches = computed(() => findMatches(text.value, props.search?.query ?? ''));
+const currentMatchIndex = computed(() => {
+  if (searchMatches.value.length === 0) return -1;
+  const index = props.search?.index ?? 0;
+  return Math.min(Math.max(index, 0), searchMatches.value.length - 1);
+});
+
+watch(
+  () => searchMatches.value.length,
+  (count) => emit('search-count', count),
+  { immediate: true },
+);
+
+watch(
+  [() => props.search?.query, () => props.search?.index, () => searchMatches.value.length],
+  async () => {
+    if (!props.search?.query) return;
+    await nextTick();
+    const mark = preEl.value?.querySelector<HTMLElement>('.find-hit-current');
+    const area = textareaEl.value;
+    if (!mark || !area) return;
+    area.scrollTop = Math.max(
+      0,
+      mark.offsetTop - area.clientHeight / 2 + mark.offsetHeight / 2,
+    );
+    area.scrollLeft = Math.max(
+      0,
+      mark.offsetLeft - area.clientWidth / 2 + mark.offsetWidth / 2,
+    );
+    syncScroll();
+  },
+  { immediate: true },
+);
+
 /** 末尾补一个换行，让高亮层与文本框的行数完全一致 */
-const highlighted = computed(() => `${highlightJson(text.value)}\n`);
+const highlighted = computed(() => {
+  const html = highlightJson(text.value, {
+    query: props.search?.query ?? '',
+    index: currentMatchIndex.value,
+  });
+  return `${html}\n`;
+});
 
 let timer: ReturnType<typeof setTimeout> | undefined;
 

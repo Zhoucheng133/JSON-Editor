@@ -1,5 +1,7 @@
 /** JSON 编辑相关的共享工具 */
 
+import { findMatches } from "./search.ts";
+
 export type JsonType = "string" | "number" | "boolean" | "null" | "object" | "array";
 
 export function jsonType(value: unknown): JsonType {
@@ -107,17 +109,60 @@ function escapeHtml(text: string): string {
 /**
  * 给 JSON 文本生成高亮 HTML（键 / 字符串 / 数字 / 布尔 / null / 标点分色）。
  * 未闭合的字符串也会被识别，方便边输入边高亮。
+ * 传入 search 时，会额外用 <mark> 包裹匹配文本，index 为当前命中下标。
  */
-export function highlightJson(text: string): string {
+export function highlightJson(
+  text: string,
+  search?: { query: string; index?: number },
+): string {
   const tokenRe =
     /("(?:\\.|[^"\\])*"?)|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)|\b(true|false|null)\b|([{}[\],:])/g;
+
+  const matches = search?.query ? findMatches(text, search.query) : [];
+  const currentIndex =
+    matches.length === 0
+      ? -1
+      : Math.min(Math.max(search?.index ?? 0, 0), matches.length - 1);
 
   let html = "";
   let last = 0;
   let match: RegExpExecArray | null;
+  /** 已经处理到第几个搜索命中（append 按位置递增调用） */
+  let searchCursor = 0;
+
+  const append = (start: number, end: number, cls?: string) => {
+    if (end <= start) return;
+
+    const push = (from: number, to: number, hitIndex: number | null) => {
+      if (to <= from) return;
+      const chunk = escapeHtml(text.slice(from, to));
+      const body =
+        hitIndex === null
+          ? chunk
+          : `<mark class="find-hit${hitIndex === currentIndex ? " find-hit-current" : ""}">${chunk}</mark>`;
+      html += cls ? `<span class="${cls}">${body}</span>` : body;
+    };
+
+    while (searchCursor < matches.length && matches[searchCursor].end <= start) {
+      searchCursor += 1;
+    }
+
+    let cursor = start;
+    let index = searchCursor;
+    while (index < matches.length && matches[index].start < end) {
+      const hit = matches[index];
+      const from = Math.max(hit.start, cursor);
+      const to = Math.min(hit.end, end);
+      if (from > cursor) push(cursor, from, null);
+      if (to > from) push(from, to, index);
+      cursor = Math.max(cursor, to);
+      index += 1;
+    }
+    if (cursor < end) push(cursor, end, null);
+  };
 
   while ((match = tokenRe.exec(text)) !== null) {
-    if (match.index > last) html += escapeHtml(text.slice(last, match.index));
+    if (match.index > last) append(last, match.index);
 
     const token = match[0];
     let cls = "text-slate-400";
@@ -133,11 +178,11 @@ export function highlightJson(text: string): string {
       cls = "text-violet-600";
     }
 
-    html += `<span class="${cls}">${escapeHtml(token)}</span>`;
+    append(match.index, match.index + token.length, cls);
     last = match.index + token.length;
   }
 
-  if (last < text.length) html += escapeHtml(text.slice(last));
+  if (last < text.length) append(last, text.length);
   return html;
 }
 

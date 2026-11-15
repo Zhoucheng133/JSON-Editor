@@ -77,6 +77,13 @@
         </button>
         <button
           class="grid h-8 w-8 place-items-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
+          :title="`搜索 (${isMac ? '⌘F' : 'Ctrl+F'})`"
+          @click="openSearch"
+        >
+          <i class="fa-solid fa-magnifying-glass text-[13px]"></i>
+        </button>
+        <button
+          class="grid h-8 w-8 place-items-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
           title="格式化"
           @click="format"
         >
@@ -111,15 +118,71 @@
 
     <!-- 编辑区 -->
     <main data-tauri-drag-region="false" class="relative min-h-0 flex-1">
-      <Tree v-if="mode === 'tree'" :locate="locateRequest" @request-raw="mode = 'raw'" />
+      <Tree
+        v-if="mode === 'tree'"
+        :locate="locateRequest"
+        :search="activeSearch"
+        @request-raw="mode = 'raw'"
+        @search-count="onSearchCount"
+      />
       <Table
         v-else-if="mode === 'table'"
+        :search="activeSearch"
         @request-raw="mode = 'raw'"
         @request-tree="mode = 'tree'"
         @locate="locateInTree"
         @notify="toast"
+        @search-count="onSearchCount"
       />
-      <Raw v-else />
+      <Raw v-else :search="activeSearch" @search-count="onSearchCount" />
+
+      <!-- 搜索框 -->
+      <Transition name="find">
+        <div
+          v-if="searchOpen"
+          class="absolute right-3 top-2 z-30 flex items-center gap-1 rounded-xl border border-slate-200 bg-white/95 px-2 py-1.5 shadow-lg shadow-slate-900/10 backdrop-blur"
+        >
+          <i class="fa-solid fa-magnifying-glass shrink-0 text-[11px] text-slate-400"></i>
+          <input
+            ref="searchInputEl"
+            v-model="searchQuery"
+            spellcheck="false"
+            placeholder="搜索当前视图"
+            class="w-52 bg-transparent text-[12px] text-slate-700 outline-none placeholder:text-slate-400"
+            @keydown.enter.prevent="stepSearch($event.shiftKey ? -1 : 1)"
+            @keydown.esc.prevent="closeSearch"
+          />
+          <span
+            class="min-w-12 shrink-0 text-right text-[11px] tabular-nums"
+            :class="searchQuery && searchCount === 0 ? 'text-red-500' : 'text-slate-400'"
+          >
+            {{ searchQuery ? `${searchCount === 0 ? 0 : searchIndex + 1}/${searchCount}` : '' }}
+          </span>
+          <button
+            class="grid h-6 w-6 shrink-0 place-items-center rounded-md text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
+            title="上一个 (⇧ Enter)"
+            :disabled="searchCount === 0"
+            @click="stepSearch(-1)"
+          >
+            <i class="fa-solid fa-chevron-up text-[10px]"></i>
+          </button>
+          <button
+            class="grid h-6 w-6 shrink-0 place-items-center rounded-md text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
+            title="下一个 (Enter)"
+            :disabled="searchCount === 0"
+            @click="stepSearch(1)"
+          >
+            <i class="fa-solid fa-chevron-down text-[10px]"></i>
+          </button>
+          <button
+            class="grid h-6 w-6 shrink-0 place-items-center rounded-md text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+            title="关闭 (Esc)"
+            @click="closeSearch"
+          >
+            <i class="fa-solid fa-xmark text-[11px]"></i>
+          </button>
+        </div>
+      </Transition>
     </main>
 
     <!-- 提示 -->
@@ -156,7 +219,7 @@
 </template>
 
 <script lang="ts" setup>
-import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import useStore from '../store/index.ts';
 import { parseJson, stringifyJson, type JsonPath } from '../utils/json.ts';
@@ -192,6 +255,51 @@ function locateInTree(path: JsonPath) {
   locateRequest.value = { path, token: locateToken };
   mode.value = 'tree';
 }
+
+/* ---------------- 搜索 ---------------- */
+const searchOpen = ref(false);
+const searchQuery = ref('');
+const searchIndex = ref(0);
+/** 当前视图中匹配到的数量，由子组件上报 */
+const searchCount = ref(0);
+const searchInputEl = ref<HTMLInputElement | null>(null);
+
+/** 传给子视图的搜索状态；关闭搜索框时清空，避免继续高亮 */
+const activeSearch = computed(() =>
+  searchOpen.value ? { query: searchQuery.value, index: searchIndex.value } : null,
+);
+
+function openSearch() {
+  searchOpen.value = true;
+  nextTick(() => {
+    searchInputEl.value?.focus();
+    searchInputEl.value?.select();
+  });
+}
+
+function closeSearch() {
+  searchOpen.value = false;
+}
+
+function stepSearch(delta: number) {
+  if (searchCount.value === 0) return;
+  searchIndex.value = (searchIndex.value + delta + searchCount.value) % searchCount.value;
+}
+
+function onSearchCount(count: number) {
+  searchCount.value = count;
+  if (count === 0) searchIndex.value = 0;
+  else if (searchIndex.value >= count) searchIndex.value = count - 1;
+}
+
+watch(searchQuery, () => {
+  searchIndex.value = 0;
+});
+
+watch(mode, () => {
+  searchCount.value = 0;
+  searchIndex.value = 0;
+});
 
 /* ---------------- 提示 ---------------- */
 const toastState = ref<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
@@ -257,10 +365,18 @@ async function requestClose() {
 
 /* ---------------- 快捷键 ---------------- */
 function onKeydown(event: KeyboardEvent) {
+  if (event.key === 'Escape' && searchOpen.value) {
+    closeSearch();
+    return;
+  }
+
   if (!(event.metaKey || event.ctrlKey)) return;
   const key = event.key.toLowerCase();
 
-  if (key === 's') {
+  if (key === 'f') {
+    event.preventDefault();
+    openSearch();
+  } else if (key === 's') {
     event.preventDefault();
     save();
   } else if (key === 'z' && !event.shiftKey) {
@@ -305,5 +421,18 @@ onBeforeUnmount(() => {
 .toast-enter-from,
 .toast-leave-to {
   opacity: 0;
+}
+
+.find-enter-active,
+.find-leave-active {
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
+}
+
+.find-enter-from,
+.find-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
 }
 </style>

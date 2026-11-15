@@ -53,7 +53,11 @@
             <span
               v-else
               class="cursor-text rounded px-1 transition hover:bg-slate-200/70"
-              :class="row.parentType === 'array' ? 'text-slate-400' : 'text-sky-700'"
+              :class="[
+                row.parentType === 'array' ? 'text-slate-400' : 'text-sky-700',
+                isSearchHit(row, 'key') ? 'bg-amber-200/70' : '',
+                isCurrentSearchHit(row, 'key') ? 'bg-amber-400/80 ring-1 ring-amber-500' : '',
+              ]"
               :title="String(row.key)"
               @click="startEditKey(row)"
             >
@@ -112,7 +116,11 @@
           <span
             v-else
             class="cursor-text truncate rounded px-1 transition hover:bg-slate-200/70"
-            :class="valueClass(row.type)"
+            :class="[
+              valueClass(row.type),
+              isSearchHit(row, 'value') ? 'bg-amber-200/70' : '',
+              isCurrentSearchHit(row, 'value') ? 'bg-amber-400/80 ring-1 ring-amber-500' : '',
+            ]"
             :title="valueText(row)"
             @click="startEditValue(row)"
           >
@@ -192,10 +200,17 @@ import {
   type JsonType,
 } from '../../utils/json.ts';
 import DropSelect from './DropSelect.vue';
+import { containsQuery } from '../../utils/search.ts';
 
-const props = defineProps<{ locate?: { path: JsonPath; token: number } | null }>();
+const props = defineProps<{
+  locate?: { path: JsonPath; token: number } | null;
+  search?: { query: string; index: number } | null;
+}>();
 
-const emit = defineEmits<{ (e: 'request-raw'): void }>();
+const emit = defineEmits<{
+  (e: 'request-raw'): void;
+  (e: 'search-count', count: number): void;
+}>();
 
 const store = useStore();
 const { content } = storeToRefs(store);
@@ -304,6 +319,56 @@ watch(
   () => props.locate,
   (locate) => {
     if (locate) revealPath(locate.path);
+  },
+  { immediate: true },
+);
+
+/* ---------------- 搜索 ---------------- */
+type SearchHit = { id: string; field: 'key' | 'value'; key: string };
+
+const searchHits = computed<SearchHit[]>(() => {
+  const query = props.search?.query ?? '';
+  if (!query) return [];
+
+  const hits: SearchHit[] = [];
+  for (const row of rows.value) {
+    if (row.key !== null && containsQuery(String(row.key), query)) {
+      hits.push({ id: row.id, field: 'key', key: `${row.id}:key` });
+    }
+    if (!row.expandable && containsQuery(valueText(row), query)) {
+      hits.push({ id: row.id, field: 'value', key: `${row.id}:value` });
+    }
+  }
+  return hits;
+});
+
+const searchHitKeys = computed(() => new Set(searchHits.value.map((hit) => hit.key)));
+const currentSearchHit = computed(() => searchHits.value[props.search?.index ?? 0] ?? null);
+const currentSearchKey = computed(() => currentSearchHit.value?.key ?? null);
+
+function isSearchHit(row: Row, field: 'key' | 'value') {
+  return searchHitKeys.value.has(`${row.id}:${field}`);
+}
+
+function isCurrentSearchHit(row: Row, field: 'key' | 'value') {
+  return currentSearchKey.value === `${row.id}:${field}`;
+}
+
+watch(
+  () => searchHits.value.length,
+  (count) => emit('search-count', count),
+  { immediate: true },
+);
+
+watch(
+  currentSearchHit,
+  async (hit) => {
+    if (!hit) return;
+    await nextTick();
+    const el = Array.from(
+      scrollerRef.value?.querySelectorAll<HTMLElement>('[data-node-id]') ?? [],
+    ).find((item) => item.dataset.nodeId === hit.id);
+    el?.scrollIntoView({ block: 'center', behavior: 'smooth' });
   },
   { immediate: true },
 );
