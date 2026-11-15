@@ -64,6 +64,7 @@
                     v-if="editingColumn === head"
                     v-model="columnText"
                     v-focus
+                    spellcheck="false"
                     class="w-28 rounded border border-amber-400 bg-white px-1 py-px text-slate-700 outline-none"
                     @keydown.enter.prevent="commitColumn(head)"
                     @keydown.esc.prevent="editingColumn = null"
@@ -145,6 +146,7 @@
                 <input
                   v-else-if="cell.kind === 'key'"
                   :value="String(cell.value)"
+                  spellcheck="false"
                   class="w-full min-w-0 rounded border border-transparent bg-transparent px-1.5 py-1 font-mono text-[12px] text-sky-700 outline-none transition hover:border-slate-200 focus:border-amber-400 focus:bg-white"
                   @keydown.enter="blurOnEnter"
                   @change="onKeyChange(cell.value, $event)"
@@ -183,6 +185,7 @@
                     v-else-if="!isComplex(cell.value)"
                     :type="cellType(cell.value) === 'number' ? 'number' : 'text'"
                     :value="cellText(cell.value)"
+                    spellcheck="false"
                     :placeholder="cell.value === null ? 'null' : ''"
                     class="min-w-0 flex-1 rounded border border-transparent bg-transparent px-1.5 py-1 font-mono text-[12px] outline-none transition hover:border-slate-200 focus:border-amber-400 focus:bg-white"
                     :class="valueClass(cellType(cell.value))"
@@ -193,14 +196,16 @@
                     v-else
                     type="text"
                     :value="cellText(cell.value)"
-                    title="编辑 JSON 内容"
-                    class="min-w-0 flex-1 rounded border border-transparent bg-transparent px-1.5 py-1 font-mono text-[12px] text-slate-400 outline-none transition hover:border-slate-200 focus:border-amber-400 focus:bg-white"
+                    spellcheck="false"
+                    title="直接输入 JSON 编辑，Esc 还原"
+                    class="min-w-0 flex-1 rounded border border-transparent bg-transparent px-1.5 py-1 font-mono text-[12px] text-slate-500 outline-none transition hover:border-slate-200 focus:border-amber-400 focus:bg-white"
                     :class="
                       invalidCells.has(cellKey(row.ref, cell.column))
                         ? 'border-red-400 ring-1 ring-red-300'
                         : ''
                     "
                     @keydown.enter="blurOnEnter"
+                    @keydown.esc="revertComplex($event, row.ref, cell.column)"
                     @change="onComplexChange(row.ref, cell.column, $event)"
                   />
 
@@ -321,11 +326,17 @@ import {
   stringifyJson,
   TYPE_OPTIONS,
   uniqueKey,
+  type JsonPath,
   type JsonType,
 } from '../../utils/json.ts';
 import DropSelect from './DropSelect.vue';
 
-const emit = defineEmits<{ (e: 'request-raw'): void; (e: 'request-tree'): void }>();
+const emit = defineEmits<{
+  (e: 'request-raw'): void;
+  (e: 'request-tree'): void;
+  (e: 'locate', path: JsonPath): void;
+  (e: 'notify', message: string, type?: 'success' | 'error' | 'info'): void;
+}>();
 
 const store = useStore();
 const { content } = storeToRefs(store);
@@ -526,16 +537,37 @@ function flashInvalid(key: string) {
   }, 1200);
 }
 
-/** 数组 / 对象单元格：按 JSON 文本编辑，非法输入则还原并标红 */
+/** 数组 / 对象单元格：按 JSON 文本编辑，无法解析时提示并还原为原值 */
 function onComplexChange(ref_: RowRef, column: string | number | undefined, event: Event) {
   const input = event.target as HTMLInputElement;
   const original = currentValue(ref_, column);
-  try {
-    setValue(ref_, column, JSON.parse(input.value));
-  } catch {
+  const text = input.value.trim();
+
+  if (!text) {
     input.value = cellText(original);
     flashInvalid(cellKey(ref_, column));
+    emit('notify', '内容为空，已还原为原值', 'error');
+    return;
   }
+
+  try {
+    setValue(ref_, column, JSON.parse(text));
+  } catch (error) {
+    input.value = cellText(original);
+    flashInvalid(cellKey(ref_, column));
+    emit('notify', `JSON 格式错误，已还原：${(error as Error).message}`, 'error');
+  }
+}
+
+/** 按 Esc 放弃本次编辑，直接恢复原值 */
+function revertComplex(
+  event: KeyboardEvent,
+  ref_: RowRef,
+  column: string | number | undefined,
+) {
+  const input = event.target as HTMLInputElement;
+  input.value = cellText(currentValue(ref_, column));
+  input.blur();
 }
 
 /** 删除字段（键值对），删除后该单元格会显示「无数据」标记 */
@@ -874,17 +906,37 @@ const contextMenu = ref<(CtxTarget & { x: number; y: number }) | null>(null);
 const ctxMenuEl = ref<HTMLElement | null>(null);
 const ctxPos = ref({ top: 0, left: 0 });
 
+/** 右键目标在树状图中的路径 */
+function contextPath(ctx: CtxTarget): JsonPath {
+  if (ctx.ref.kind === 'record') return [ctx.ref.index, ctx.column as string];
+  if (ctx.ref.kind === 'entry') return [ctx.ref.key];
+  return [ctx.rowIndex];
+}
+
 /** 当前右键目标可执行的操作 */
 const contextItems = computed<MenuEntry[]>(() => {
   const ctx = contextMenu.value;
   const m = model.value;
   if (!ctx || !m) return [];
 
-  const items: MenuEntry[] = [
+  const items: MenuEntry[] = [];
+
+  if (ctx.hasValue) {
+    items.push(
+      {
+        label: '在树状图中定位',
+        icon: 'fa-crosshairs',
+        run: () => emit('locate', contextPath(ctx)),
+      },
+      { divider: true },
+    );
+  }
+
+  items.push(
     { label: '在上方插入行', icon: 'fa-arrow-up', run: () => insertRowAt(ctx.rowIndex, 'above') },
     { label: '在下方插入行', icon: 'fa-arrow-down', run: () => insertRowAt(ctx.rowIndex, 'below') },
     { label: '删除本行', icon: 'fa-trash-can', danger: true, run: () => removeRow(ctx.ref) },
-  ];
+  );
 
   if (m.kind === 'records') {
     items.push(

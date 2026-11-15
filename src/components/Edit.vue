@@ -111,11 +111,13 @@
 
     <!-- 编辑区 -->
     <main data-tauri-drag-region="false" class="relative min-h-0 flex-1">
-      <Tree v-if="mode === 'tree'" @request-raw="mode = 'raw'" />
+      <Tree v-if="mode === 'tree'" :locate="locateRequest" @request-raw="mode = 'raw'" />
       <Table
         v-else-if="mode === 'table'"
         @request-raw="mode = 'raw'"
         @request-tree="mode = 'tree'"
+        @locate="locateInTree"
+        @notify="toast"
       />
       <Raw v-else />
     </main>
@@ -157,7 +159,7 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { storeToRefs } from 'pinia';
 import useStore from '../store/index.ts';
-import { parseJson, stringifyJson } from '../utils/json.ts';
+import { parseJson, stringifyJson, type JsonPath } from '../utils/json.ts';
 import Tree from './edit_components/Tree.vue';
 import Table from './edit_components/Table.vue';
 import Raw from './edit_components/Raw.vue';
@@ -180,6 +182,16 @@ const tabs = [
 
 const mode = ref<(typeof tabs)[number]['id']>('tree');
 const saving = ref(false);
+
+/** 从表格跳转到树状图并定位到指定节点；token 用于重复定位时触发 watch */
+const locateRequest = ref<{ path: JsonPath; token: number } | null>(null);
+let locateToken = 0;
+
+function locateInTree(path: JsonPath) {
+  locateToken += 1;
+  locateRequest.value = { path, token: locateToken };
+  mode.value = 'tree';
+}
 
 /* ---------------- 提示 ---------------- */
 const toastState = ref<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);

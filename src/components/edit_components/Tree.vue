@@ -13,10 +13,16 @@
       </button>
     </div>
 
-    <div v-else class="min-h-0 flex-1 overflow-auto py-2 font-mono text-[13px]">
+    <div
+      v-else
+      ref="scrollerRef"
+      class="min-h-0 flex-1 overflow-auto py-2 font-mono text-[13px]"
+    >
       <template v-for="row in rows" :key="row.id">
         <div
           class="group flex items-center gap-1.5 rounded-md py-0.75 pr-2 hover:bg-slate-50"
+          :class="highlightId === row.id ? 'locate-highlight' : ''"
+          :data-node-id="row.id"
           :style="{ paddingLeft: `${10 + row.depth * 18}px` }"
         >
           <!-- 展开/折叠 -->
@@ -39,6 +45,7 @@
               v-if="isEditing(row, 'key')"
               v-model="editText"
               v-focus
+              spellcheck="false"
               class="w-32 rounded border border-amber-400 bg-white px-1 py-px text-slate-700 outline-none"
               @keydown.enter.prevent="commitKey"
               @keydown.esc.prevent="cancelEdit"
@@ -80,12 +87,14 @@
               v-else-if="editType === 'null'"
               class="w-16 rounded border border-slate-200 bg-slate-50 px-1 py-px text-slate-400 outline-none"
               value="null"
+              spellcheck="false"
               disabled
             />
             <input
               v-else
               v-model="editText"
               v-focus
+              spellcheck="false"
               class="min-w-24 rounded border border-amber-400 bg-white px-1 py-px text-slate-700 outline-none"
               :class="editType === 'number' ? 'w-28' : 'w-48'"
               @keydown.enter.prevent="commitValue"
@@ -144,6 +153,7 @@
             v-model="adding.key"
             v-focus
             placeholder="字段名"
+            spellcheck="false"
             class="w-32 rounded border border-amber-400 bg-white px-1 py-px text-sky-700 outline-none"
             @keydown.enter.prevent="commitAdd"
             @keydown.esc.prevent="cancelAdd"
@@ -164,7 +174,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, ref } from 'vue';
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import useStore from '../../store/index.ts';
 import {
@@ -182,6 +192,8 @@ import {
   type JsonType,
 } from '../../utils/json.ts';
 import DropSelect from './DropSelect.vue';
+
+const props = defineProps<{ locate?: { path: JsonPath; token: number } | null }>();
 
 const emit = defineEmits<{ (e: 'request-raw'): void }>();
 
@@ -258,6 +270,43 @@ const rows = computed<Row[]>(() => {
   walk(parsed.value.value, [], null, 0, null);
   return list;
 });
+
+/* ---------------- 定位（从表格跳转过来） ---------------- */
+const scrollerRef = ref<HTMLElement | null>(null);
+/** 当前高亮的节点 id */
+const highlightId = ref<string | null>(null);
+let highlightTimer: ReturnType<typeof setTimeout> | undefined;
+
+/** 展开目标路径的所有父节点，滚动到目标节点并短暂高亮 */
+async function revealPath(path: JsonPath) {
+  const expanded = new Set(collapsed.value);
+  for (let i = 0; i < path.length; i += 1) {
+    expanded.delete(pathKey(path.slice(0, i)));
+  }
+  collapsed.value = expanded;
+
+  const id = pathKey(path);
+  highlightId.value = id;
+  await nextTick();
+
+  const target = Array.from(
+    scrollerRef.value?.querySelectorAll<HTMLElement>('[data-node-id]') ?? [],
+  ).find((el) => el.dataset.nodeId === id);
+  target?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+
+  if (highlightTimer) clearTimeout(highlightTimer);
+  highlightTimer = setTimeout(() => {
+    if (highlightId.value === id) highlightId.value = null;
+  }, 2000);
+}
+
+watch(
+  () => props.locate,
+  (locate) => {
+    if (locate) revealPath(locate.path);
+  },
+  { immediate: true },
+);
 
 /* ---------------- 编辑状态 ---------------- */
 const editId = ref<string | null>(null);
@@ -481,4 +530,26 @@ function valueClass(type: JsonType) {
       return 'text-slate-600';
   }
 }
+
+onBeforeUnmount(() => {
+  if (highlightTimer) clearTimeout(highlightTimer);
+});
 </script>
+
+<style scoped>
+.locate-highlight {
+  animation: locate-flash 2s ease-out;
+}
+
+@keyframes locate-flash {
+  0%,
+  30% {
+    background-color: #fef3c7;
+    box-shadow: inset 0 0 0 1px #fcd34d;
+  }
+  100% {
+    background-color: transparent;
+    box-shadow: inset 0 0 0 1px transparent;
+  }
+}
+</style>
