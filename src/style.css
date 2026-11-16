@@ -5,6 +5,14 @@ html {
   color-scheme: light dark;
 }
 
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
 /* 搜索命中的高亮（由 v-html 渲染，需使用全局样式） */
 .find-hit {
   color: inherit;
