@@ -16,11 +16,34 @@
       "
     ></div>
 
+    <!-- 语言切换 -->
+    <div
+      data-tauri-drag-region="false"
+      class="absolute top-4 z-20"
+      :class="isTauri && !isMac ? 'right-37.5' : 'right-4'"
+    >
+      <label class="sr-only" for="locale-select">{{ t('add.lang.label') }}</label>
+      <div class="relative">
+        <select
+          id="locale-select"
+          :value="locale"
+          class="h-8 cursor-pointer appearance-none rounded-lg border border-slate-200 bg-white/90 py-1 pl-2.5 pr-7 text-[12px] text-slate-700 shadow-sm outline-none backdrop-blur transition hover:border-slate-300 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 dark:border-slate-700 dark:bg-slate-900/90 dark:text-slate-200 dark:hover:border-slate-600"
+          @change="onLocaleChange"
+        >
+          <option value="zh-CN">{{ t('add.lang.zhCN') }}</option>
+          <option value="en">{{ t('add.lang.en') }}</option>
+        </select>
+        <i
+          class="fa-solid fa-chevron-down pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[9px] text-slate-400 dark:text-slate-500"
+        ></i>
+      </div>
+    </div>
+
     <main class="relative z-10 flex flex-1 items-center justify-center px-6 pb-10">
       <section class="w-full max-w-140">
         <div class="mb-7 text-center">
-          <h1 class="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">打开 JSON 文件</h1>
-          <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">拖拽文件到下方，或从本地选择，即可开始编辑</p>
+          <h1 class="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">{{ t('add.title') }}</h1>
+          <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">{{ t('add.subtitle') }}</p>
         </div>
 
         <Transition name="fade-slide" mode="out-in">
@@ -44,18 +67,18 @@
                 <p class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-slate-500 dark:text-slate-400">
                   <span>{{ formatSize(picked.size) }}</span>
                   <span class="h-0.5 w-0.5 rounded-full bg-slate-300 dark:bg-slate-600"></span>
-                  <span>{{ picked.summary.detail }}</span>
+                  <span>{{ summaryLabel(picked.summary) }}</span>
                 </p>
               </div>
               <span
                 class="mt-0.5 inline-flex shrink-0 items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300"
               >
                 <i class="fa-solid fa-circle-check"></i>
-                有效
+                {{ t('add.valid') }}
               </span>
               <button
                 class="-mr-1 -mt-1 rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300"
-                aria-label="移除文件"
+                :aria-label="t('add.removeFile')"
                 @click.stop="resetPicked"
               >
                 <i class="fa-solid fa-xmark"></i>
@@ -84,7 +107,7 @@
                 class="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-linear-to-r from-amber-400 to-amber-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-amber-500/20 transition hover:brightness-105 active:scale-[0.99]"
                 @click="startEditing"
               >
-                开始编辑
+                {{ t('add.startEditing') }}
                 <i class="fa-solid fa-arrow-right text-xs"></i>
               </button>
               <button
@@ -92,7 +115,7 @@
                 @click="pickFile"
               >
                 <i class="fa-solid fa-rotate-right text-xs"></i>
-                更换文件
+                {{ t('add.changeFile') }}
               </button>
             </div>
           </div>
@@ -146,16 +169,14 @@
             </div>
 
             <p class="text-[15px] font-medium text-slate-800 dark:text-slate-200">
-              {{
-                loading ? '正在读取文件…' : isDragging ? '松开即可添加文件' : '拖拽 JSON 文件到此处'
-              }}
+              {{ loading ? t('add.reading') : isDragging ? t('add.dropToAdd') : t('add.dragHere') }}
             </p>
             <p class="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
-              <template v-if="loading">正在校验 JSON 内容，请稍候</template>
+              <template v-if="loading">{{ t('add.validating') }}</template>
               <template v-else>
-                或
+                {{ t('add.or') }}
                 <span class="text-amber-600 underline decoration-amber-300 underline-offset-4 dark:text-amber-400 dark:decoration-amber-500/60">
-                  点击浏览本地文件
+                  {{ t('add.browseLocal') }}
                 </span>
               </template>
             </p>
@@ -164,7 +185,7 @@
               <span class="rounded-md border border-slate-200 bg-white px-1.5 py-0.5 font-mono dark:border-slate-700 dark:bg-slate-900">
                 {{ shortcutLabel }}
               </span>
-              <span>快速打开</span>
+              <span>{{ t('add.quickOpen') }}</span>
             </div>
           </div>
         </Transition>
@@ -179,7 +200,7 @@
             <p class="flex-1 leading-relaxed">{{ error }}</p>
             <button
               class="-mr-1 rounded p-0.5 text-red-400 transition hover:text-red-600 dark:hover:text-red-300"
-              aria-label="关闭提示"
+              :aria-label="t('add.closeNotice')"
               @click="clearError"
             >
               <i class="fa-solid fa-xmark"></i>
@@ -188,10 +209,10 @@
         </Transition>
 
         <p class="mt-4 text-center text-[11px] text-slate-400 dark:text-slate-500">
-          支持 .json 文件 · 单文件最大 {{ MAX_SIZE_MB }} MB
+          {{ t('add.support', { size: MAX_SIZE_MB }) }}
         </p>
         <p v-if="!isTauri" class="mt-1 text-center text-[11px] text-slate-400 dark:text-slate-500">
-          本网站不会存储你上传的任何文件
+          {{ t('add.privacy') }}
         </p>
       </section>
     </main>
@@ -206,7 +227,7 @@
           class="absolute left-1/2 top-6 flex -translate-x-1/2 items-center gap-2 rounded-full border border-amber-200 bg-white/95 px-4 py-1.5 text-xs font-medium text-amber-600 shadow-xl dark:border-amber-500/30 dark:bg-slate-900/95 dark:text-amber-300"
         >
           <i class="fa-solid fa-arrow-down"></i>
-          松开即可添加文件
+          {{ t('add.dropToAdd') }}
         </div>
       </div>
     </Transition>
@@ -223,18 +244,23 @@
 
 <script lang="ts" setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import useStore from '../store/index.ts';
+import { setLocale, type Locale } from '../i18n';
 
 const store = useStore();
+const { t, locale } = useI18n();
 
 const MAX_SIZE = 10 * 1024 * 1024;
 const MAX_SIZE_MB = MAX_SIZE / 1024 / 1024;
 const isTauri = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
+const isMac = /Mac|iPhone|iPad/.test(navigator.userAgent);
 
-type JsonSummary = {
-  kind: 'object' | 'array' | 'value';
-  detail: string;
-};
+type JsonSummary =
+  | { kind: 'array'; count: number }
+  | { kind: 'object'; count: number }
+  | { kind: 'string' }
+  | { kind: 'value'; valueType: string };
 
 type PickedFile = {
   path: string;
@@ -250,12 +276,17 @@ const isDragging = ref(false);
 const loading = ref(false);
 const error = ref('');
 
-const shortcutLabel = /Mac|iPhone|iPad/.test(navigator.userAgent) ? '⌘ O' : 'Ctrl O';
+const shortcutLabel = isMac ? '⌘ O' : 'Ctrl O';
 
 let dragDepth = 0;
 let errorTimer: ReturnType<typeof setTimeout> | undefined;
 let unlistenDragDrop: (() => void) | undefined;
 let disposed = false;
+
+function onLocaleChange(e: Event) {
+  const value = (e.target as HTMLSelectElement).value as Locale;
+  setLocale(value);
+}
 
 const prettyPreview = computed(() => {
   if (!picked.value) return '';
@@ -278,12 +309,22 @@ function baseName(path: string) {
 
 function summarise(value: unknown): JsonSummary {
   if (Array.isArray(value)) {
-    return { kind: 'array', detail: `数组 · ${value.length} 项` };
+    return { kind: 'array', count: value.length };
   }
   if (value !== null && typeof value === 'object') {
-    return { kind: 'object', detail: `对象 · ${Object.keys(value).length} 个键` };
+    return { kind: 'object', count: Object.keys(value).length };
   }
-  return { kind: 'value', detail: typeof value === 'string' ? '字符串' : String(value) };
+  if (typeof value === 'string') {
+    return { kind: 'string' };
+  }
+  return { kind: 'value', valueType: String(value) };
+}
+
+function summaryLabel(summary: JsonSummary): string {
+  if (summary.kind === 'array') return t('add.summary.array', { count: summary.count });
+  if (summary.kind === 'object') return t('add.summary.object', { count: summary.count });
+  if (summary.kind === 'string') return t('add.summary.string');
+  return summary.valueType;
 }
 
 function setError(message: string) {
@@ -305,17 +346,17 @@ function resetPicked() {
 /** 校验内容并进入待确认状态 */
 async function acceptText(name: string, size: number, content: string, path = name) {
   if (!/\.json$/i.test(name)) {
-    setError('仅支持 .json 文件，请重新选择');
+    setError(t('add.error.onlyJson'));
     return;
   }
   if (size > MAX_SIZE) {
-    setError(`文件大小不能超过 ${MAX_SIZE_MB} MB`);
+    setError(t('add.error.tooLarge', { size: MAX_SIZE_MB }));
     return;
   }
 
   const raw = content.replace(/^\uFEFF/, '').trim();
   if (!raw) {
-    setError('文件内容为空');
+    setError(t('add.error.empty'));
     return;
   }
 
@@ -330,14 +371,14 @@ async function acceptText(name: string, size: number, content: string, path = na
     };
     clearError();
   } catch (e) {
-    setError(`JSON 格式错误：${(e as Error).message}`);
+    setError(t('add.error.invalidJson', { message: (e as Error).message }));
   }
 }
 
 /** 通过 Tauri 读取本地文件 */
 async function loadFromPath(path: string) {
   if (!/\.json$/i.test(path)) {
-    setError('仅支持 .json 文件，请重新选择');
+    setError(t('add.error.onlyJson'));
     return;
   }
 
@@ -348,7 +389,7 @@ async function loadFromPath(path: string) {
     const content = await invoke<string>('read_json_file', { path });
     await acceptText(baseName(path), new Blob([content]).size, content, path);
   } catch (e) {
-    setError(typeof e === 'string' ? e : (e as Error)?.message || '读取文件失败');
+    setError(typeof e === 'string' ? e : (e as Error)?.message || t('add.error.readFailed'));
   } finally {
     loading.value = false;
   }
@@ -357,11 +398,11 @@ async function loadFromPath(path: string) {
 /** 浏览器环境：通过 File API 读取 */
 async function handleBrowserFile(file: File) {
   if (!/\.json$/i.test(file.name)) {
-    setError('仅支持 .json 文件，请重新选择');
+    setError(t('add.error.onlyJson'));
     return;
   }
   if (file.size > MAX_SIZE) {
-    setError(`文件大小不能超过 ${MAX_SIZE_MB} MB`);
+    setError(t('add.error.tooLarge', { size: MAX_SIZE_MB }));
     return;
   }
 
@@ -371,7 +412,7 @@ async function handleBrowserFile(file: File) {
     const text = await file.text();
     await acceptText(file.name, file.size, text, file.name);
   } catch {
-    setError('读取文件失败，请重试');
+    setError(t('add.error.readFailedRetry'));
   } finally {
     loading.value = false;
   }
@@ -387,13 +428,13 @@ async function pickFile() {
       const selected = await open({
         multiple: false,
         directory: false,
-        filters: [{ name: 'JSON 文件', extensions: ['json'] }],
+        filters: [{ name: t('add.dialog.jsonFiles'), extensions: ['json'] }],
       });
       if (typeof selected === 'string') {
         await loadFromPath(selected);
       }
     } catch {
-      setError('无法打开文件选择器');
+      setError(t('add.error.pickerFailed'));
     }
   } else {
     fileInput.value?.click();
@@ -429,7 +470,7 @@ function onDragLeave(e: DragEvent) {
 }
 
 function onDrop(e: DragEvent) {
-  if (isTauri) return;  
+  if (isTauri) return;
   e.preventDefault();
   dragDepth = 0;
   isDragging.value = false;
@@ -438,7 +479,7 @@ function onDrop(e: DragEvent) {
   if (file) {
     handleBrowserFile(file);
   } else {
-    setError('未检测到文件，请重试');
+    setError(t('add.error.noFile'));
   }
 }
 
@@ -477,7 +518,7 @@ onMounted(async () => {
         if (target) {
           loadFromPath(target);
         } else if (payload.paths.length > 0) {
-          setError('仅支持拖入 .json 文件');
+          setError(t('add.error.dropOnlyJson'));
         }
       }
     });

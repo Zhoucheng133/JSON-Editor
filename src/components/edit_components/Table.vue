@@ -3,13 +3,15 @@
     <!-- JSON 无效 -->
     <div v-if="!parsed.ok" class="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
       <i class="fa-solid fa-triangle-exclamation text-2xl text-amber-500"></i>
-      <p class="text-sm font-medium text-slate-700 dark:text-slate-300">当前内容不是合法的 JSON，无法以表格编辑</p>
-      <p class="max-w-md text-xs text-slate-500 dark:text-slate-400">{{ parsed.error }}</p>
+      <p class="text-sm font-medium text-slate-700 dark:text-slate-300">{{ t('table.invalidTitle') }}</p>
+      <p class="max-w-md text-xs text-slate-500 dark:text-slate-400">
+        {{ parsed.error === JSON_ERROR_EMPTY ? t('json.empty') : parsed.error }}
+      </p>
       <button
         class="mt-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-600 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
         @click="emit('request-raw')"
       >
-        切换到「原始文件」修复
+        {{ t('table.switchToRaw') }}
       </button>
     </div>
 
@@ -19,15 +21,15 @@
       class="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center"
     >
       <i class="fa-solid fa-table-cells text-2xl text-slate-300 dark:text-slate-600"></i>
-      <p class="text-sm font-medium text-slate-700 dark:text-slate-300">当前 JSON 无法用表格展示</p>
+      <p class="text-sm font-medium text-slate-700 dark:text-slate-300">{{ t('table.unsupportedTitle') }}</p>
       <p class="max-w-md text-xs text-slate-500 dark:text-slate-400">
-        表格视图适合「对象数组」「对象」或「数组」，请改用树状图或原始文件编辑。
+        {{ t('table.unsupportedDesc') }}
       </p>
       <button
         class="mt-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-600 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
         @click="emit('request-tree')"
       >
-        切换到「树状图」
+        {{ t('table.switchToTree') }}
       </button>
     </div>
 
@@ -76,14 +78,14 @@
                   <button
                     v-else
                     class="cursor-text rounded px-1 py-px transition hover:bg-slate-200/70 dark:hover:bg-slate-800/70"
-                    title="点击重命名列"
+                    :title="t('table.clickToRename')"
                     @click="startColumn(head)"
                   >
                     {{ head }}
                   </button>
                   <button
                     class="grid h-4 w-4 place-items-center rounded text-slate-400 opacity-0 transition group-hover:opacity-100 hover:bg-red-50 hover:text-red-500 dark:text-slate-500 dark:hover:bg-red-500/10 dark:hover:text-red-400"
-                    title="删除列"
+                    :title="t('table.deleteColumn')"
                     @click="removeColumn(head)"
                   >
                     <i class="fa-solid fa-xmark text-[9px]"></i>
@@ -99,7 +101,7 @@
                       ? 'bg-amber-400'
                       : 'hover:bg-amber-300/80'
                   "
-                  title="拖动调整列宽，双击恢复默认"
+                  :title="t('table.resizeColumn')"
                   @pointerdown.stop.prevent="onResizeStart($event, index)"
                   @dblclick.stop="resetColWidth(index)"
                 ></span>
@@ -110,7 +112,7 @@
               >
                 <button
                   class="grid h-5 w-5 place-items-center rounded text-slate-400 transition hover:bg-slate-200 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300"
-                  title="添加列"
+                  :title="t('table.addColumn')"
                   @click="addColumn"
                 >
                   <i class="fa-solid fa-plus text-[10px]"></i>
@@ -131,7 +133,7 @@
               <td class="w-6 border-b border-slate-100 px-0 align-middle dark:border-slate-800/70">
                 <button
                   class="mx-auto grid h-6 w-5 cursor-grab touch-none place-items-center rounded text-slate-300 transition hover:bg-slate-100 hover:text-slate-500 active:cursor-grabbing dark:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-400"
-                  title="拖拽调整顺序"
+                  :title="t('table.dragRow')"
                   @pointerdown="onDragStart($event, rowIndex)"
                 >
                   <i class="fa-solid fa-grip-vertical text-[10px]"></i>
@@ -167,11 +169,11 @@
                 <div v-else-if="cell.value === undefined" class="px-0.5">
                   <button
                     class="inline-flex items-center gap-1 rounded-md border border-dashed border-slate-300 px-1.5 py-0.5 text-[11px] text-slate-400 transition hover:border-amber-400 hover:text-amber-600 dark:border-slate-700 dark:text-slate-500 dark:hover:border-amber-500/70 dark:hover:text-amber-400"
-                    title="该字段在当前行不存在，点击添加"
+                    :title="t('table.missingFieldTitle')"
                     @click="addCell(row.ref, cell.column)"
                   >
                     <i class="fa-solid fa-plus text-[9px]"></i>
-                    无数据
+                    {{ t('table.noData') }}
                   </button>
                 </div>
 
@@ -180,14 +182,14 @@
                   <DropSelect
                     compact
                     :model-value="cellType(cell.value)"
-                    :options="TYPE_OPTIONS"
+                    :options="typeOptions"
                     @update:model-value="onTypeChange(row.ref, cell.column, $event)"
                   />
 
                   <button
                     v-if="cellType(cell.value) === 'boolean'"
                     class="min-w-0 flex-1 rounded border border-transparent px-1.5 py-1 text-left font-mono text-[12px] text-violet-600 transition hover:border-slate-200 hover:bg-white dark:text-violet-400 dark:hover:border-slate-700 dark:hover:bg-slate-900"
-                    title="点击切换 true / false"
+                    :title="t('table.toggleBoolean')"
                     @click="toggleBoolean(row.ref, cell.column)"
                   >
                     {{ cell.value }}
@@ -208,7 +210,7 @@
                     type="text"
                     :value="cellText(cell.value)"
                     spellcheck="false"
-                    title="直接输入 JSON 编辑，Esc 还原"
+                    :title="t('table.complexHint')"
                     class="min-w-0 flex-1 rounded border border-transparent bg-transparent px-1.5 py-1 font-mono text-[12px] text-slate-500 outline-none transition hover:border-slate-200 focus:border-amber-400 focus:bg-white dark:text-slate-400 dark:hover:border-slate-700 dark:focus:bg-slate-900"
                     :class="
                       invalidCells.has(cellKey(row.ref, cell.column))
@@ -223,7 +225,7 @@
                   <button
                     v-if="canDeleteCell(row.ref)"
                     class="grid h-5 w-5 shrink-0 place-items-center rounded text-slate-300 opacity-0 transition group-hover/cell:opacity-100 hover:bg-red-50 hover:text-red-500 dark:text-slate-600 dark:hover:bg-red-500/10 dark:hover:text-red-400"
-                    title="删除该字段"
+                    :title="t('table.deleteField')"
                     @click="deleteCell(row.ref, cell.column)"
                   >
                     <i class="fa-solid fa-trash-can text-[10px]"></i>
@@ -237,7 +239,7 @@
               >
                 <button
                   class="grid h-5 w-5 place-items-center rounded text-slate-400 opacity-0 transition group-hover:opacity-100 hover:bg-red-50 hover:text-red-500 dark:text-slate-500 dark:hover:bg-red-500/10 dark:hover:text-red-400"
-                  title="删除行"
+                  :title="t('table.deleteRow')"
                   @click="removeRow(row.ref)"
                 >
                   <i class="fa-solid fa-trash-can text-[10px]"></i>
@@ -250,7 +252,7 @@
                 :colspan="model.head.length + (model.kind === 'entries' ? 0 : 1) + 1"
                 class="px-3 py-6 text-center text-xs text-slate-400 dark:text-slate-500"
               >
-                暂无数据
+                {{ t('table.empty') }}
               </td>
             </tr>
           </tbody>
@@ -261,13 +263,13 @@
       <div
         class="flex shrink-0 items-center justify-between border-t border-slate-200 px-3 py-1.5 text-[11px] text-slate-400 dark:border-slate-800 dark:text-slate-500"
       >
-        <span>{{ model.rows.length }} 行 · {{ model.head.length }} 列</span>
+        <span>{{ t('table.summary', { rows: model.rows.length, cols: model.head.length }) }}</span>
         <button
           class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-1 text-slate-600 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
           @click="addRow"
         >
           <i class="fa-solid fa-plus text-[10px]"></i>
-          添加行
+          {{ t('table.addRow') }}
         </button>
       </div>
     </template>
@@ -328,11 +330,13 @@
 <script lang="ts" setup>
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
+import { useI18n } from 'vue-i18n';
 import useStore from '../../store/index.ts';
 import {
   cloneJson,
   convertValue,
   jsonType,
+  JSON_ERROR_EMPTY,
   parseJson,
   stringifyJson,
   TYPE_OPTIONS,
@@ -342,6 +346,15 @@ import {
 } from '../../utils/json.ts';
 import DropSelect from './DropSelect.vue';
 import { containsQuery } from '../../utils/search.ts';
+
+const { t } = useI18n();
+
+const typeOptions = computed(() =>
+  TYPE_OPTIONS.map((option) => ({
+    ...option,
+    label: t(`types.${option.value}`),
+  })),
+);
 
 const props = defineProps<{ search?: { query: string; index: number } | null }>();
 
@@ -402,7 +415,7 @@ const model = computed<Model | null>(() => {
     }
     return {
       kind: 'list',
-      head: ['#', '值'],
+      head: [t('table.headers.index'), t('table.headers.value')],
       rows: value.map((item, index) => ({
         ref: { kind: 'list', index },
         cells: [
@@ -416,7 +429,7 @@ const model = computed<Model | null>(() => {
   if (value !== null && typeof value === 'object') {
     return {
       kind: 'entries',
-      head: ['键', '值'],
+      head: [t('table.headers.key'), t('table.headers.value')],
       rows: Object.entries(value).map(([key, item]) => ({
         ref: { kind: 'entry', key },
         cells: [
@@ -645,7 +658,7 @@ function onComplexChange(ref_: RowRef, column: string | number | undefined, even
   if (!text) {
     input.value = cellText(original);
     flashInvalid(cellKey(ref_, column));
-    emit('notify', '内容为空，已还原为原值', 'error');
+    emit('notify', t('table.notify.emptyReverted'), 'error');
     return;
   }
 
@@ -654,7 +667,7 @@ function onComplexChange(ref_: RowRef, column: string | number | undefined, even
   } catch (error) {
     input.value = cellText(original);
     flashInvalid(cellKey(ref_, column));
-    emit('notify', `JSON 格式错误，已还原：${(error as Error).message}`, 'error');
+    emit('notify', t('table.notify.invalidReverted', { message: (error as Error).message }), 'error');
   }
 }
 
@@ -715,7 +728,7 @@ function addRow() {
     if (Array.isArray(root)) {
       root.push(root.length > 0 && model.value?.kind === 'records' ? {} : '');
     } else {
-      root[uniqueKey(Object.keys(root), '新字段')] = '';
+      root[uniqueKey(Object.keys(root), t('table.newField'))] = '';
     }
   });
 }
@@ -736,7 +749,7 @@ function insertRowAt(rowIndex: number, position: 'above' | 'below') {
       return;
     }
     const entries = Object.entries(root);
-    entries.splice(Math.min(at, entries.length), 0, [uniqueKey(Object.keys(root), '新字段'), '']);
+    entries.splice(Math.min(at, entries.length), 0, [uniqueKey(Object.keys(root), t('table.newField')), '']);
     for (const key of Object.keys(root)) delete root[key];
     for (const [key, value] of entries) root[key] = value;
   });
@@ -747,7 +760,7 @@ function insertColumnAt(colIndex: number, position: 'left' | 'right') {
   const m = model.value;
   if (!m || m.kind !== 'records') return;
   const at = position === 'left' ? colIndex : colIndex + 1;
-  const key = uniqueKey(m.head, '新字段');
+  const key = uniqueKey(m.head, t('table.newField'));
   withRoot((root) => {
     for (const row of root) {
       if (row === null || typeof row !== 'object') continue;
@@ -788,7 +801,7 @@ function commitColumn(head: string) {
 function addColumn() {
   const columns = model.value?.head ?? [];
   withRoot((root) => {
-    const key = uniqueKey(columns, '新字段');
+    const key = uniqueKey(columns, t('table.newField'));
     for (const row of root) {
       if (row === null || typeof row !== 'object') continue;
       row[key] = '';
@@ -1023,7 +1036,7 @@ const contextItems = computed<MenuEntry[]>(() => {
   if (ctx.hasValue) {
     items.push(
       {
-        label: '在树状图中定位',
+        label: t('table.menu.locateInTree'),
         icon: 'fa-crosshairs',
         run: () => emit('locate', contextPath(ctx)),
       },
@@ -1032,24 +1045,24 @@ const contextItems = computed<MenuEntry[]>(() => {
   }
 
   items.push(
-    { label: '在上方插入行', icon: 'fa-arrow-up', run: () => insertRowAt(ctx.rowIndex, 'above') },
-    { label: '在下方插入行', icon: 'fa-arrow-down', run: () => insertRowAt(ctx.rowIndex, 'below') },
-    { label: '删除本行', icon: 'fa-trash-can', danger: true, run: () => removeRow(ctx.ref) },
+    { label: t('table.menu.insertRowAbove'), icon: 'fa-arrow-up', run: () => insertRowAt(ctx.rowIndex, 'above') },
+    { label: t('table.menu.insertRowBelow'), icon: 'fa-arrow-down', run: () => insertRowAt(ctx.rowIndex, 'below') },
+    { label: t('table.menu.deleteRow'), icon: 'fa-trash-can', danger: true, run: () => removeRow(ctx.ref) },
   );
 
   if (m.kind === 'records') {
     items.push(
       { divider: true },
-      { label: '在左侧插入列', icon: 'fa-arrow-left', run: () => insertColumnAt(ctx.cellIndex, 'left') },
-      { label: '在右侧插入列', icon: 'fa-arrow-right', run: () => insertColumnAt(ctx.cellIndex, 'right') },
-      { label: '删除本列', icon: 'fa-trash-can', danger: true, run: () => deleteColumnAt(ctx.cellIndex) },
+      { label: t('table.menu.insertColLeft'), icon: 'fa-arrow-left', run: () => insertColumnAt(ctx.cellIndex, 'left') },
+      { label: t('table.menu.insertColRight'), icon: 'fa-arrow-right', run: () => insertColumnAt(ctx.cellIndex, 'right') },
+      { label: t('table.menu.deleteColumn'), icon: 'fa-trash-can', danger: true, run: () => deleteColumnAt(ctx.cellIndex) },
     );
   }
 
   if (ctx.hasValue && ctx.ref.kind !== 'list') {
     items.push(
       { divider: true },
-      { label: '删除该字段', icon: 'fa-eraser', danger: true, run: () => deleteCell(ctx.ref, ctx.column) },
+      { label: t('table.menu.deleteField'), icon: 'fa-eraser', danger: true, run: () => deleteCell(ctx.ref, ctx.column) },
     );
   }
 

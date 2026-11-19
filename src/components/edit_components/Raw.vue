@@ -22,7 +22,7 @@
           spellcheck="false"
           wrap="off"
           class="relative h-full w-full resize-none bg-transparent p-3 font-mono text-[13px] leading-6 text-transparent caret-slate-800 outline-none selection:bg-amber-300/40 placeholder:text-slate-300 dark:caret-slate-100 dark:placeholder:text-slate-600 dark:selection:bg-amber-400/30"
-          placeholder="在这里直接编辑 JSON 文本…"
+          :placeholder="t('raw.placeholder')"
           @input="scheduleCommit"
           @blur="flush"
           @scroll="syncScroll"
@@ -39,8 +39,8 @@
         class="fa-solid text-[10px]"
         :class="status.ok ? 'fa-circle-check text-amber-500' : 'fa-triangle-exclamation'"
       ></i>
-      <span v-if="status.ok">JSON 有效 · {{ lineCount }} 行</span>
-      <span v-else class="truncate" :title="status.error">{{ status.error }}</span>
+      <span v-if="status.ok">{{ t('raw.valid', { lines: lineCount }) }}</span>
+      <span v-else class="truncate" :title="displayError">{{ displayError }}</span>
     </div>
   </div>
 </template>
@@ -48,9 +48,12 @@
 <script lang="ts" setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
+import { useI18n } from 'vue-i18n';
 import useStore from '../../store/index.ts';
-import { highlightJson, parseJson } from '../../utils/json.ts';
+import { highlightJson, JSON_ERROR_EMPTY, parseJson } from '../../utils/json.ts';
 import { findMatches } from '../../utils/search.ts';
+
+const { t } = useI18n();
 
 const props = defineProps<{ search?: { query: string; index: number } | null }>();
 
@@ -66,6 +69,10 @@ const textareaEl = ref<HTMLTextAreaElement | null>(null);
 
 const status = computed(() => parseJson(text.value));
 const lineCount = computed(() => text.value.split('\n').length);
+const displayError = computed(() => {
+  if (status.value.ok) return '';
+  return status.value.error === JSON_ERROR_EMPTY ? t('json.empty') : status.value.error;
+});
 
 /* ---------------- 搜索 ---------------- */
 const searchMatches = computed(() => findMatches(text.value, props.search?.query ?? ''));

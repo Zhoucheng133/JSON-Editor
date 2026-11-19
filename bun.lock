@@ -1,5 +1,6 @@
 {
   "lockfileVersion": 1,
+  "configVersion": 0,
   "workspaces": {
     "": {
       "name": "json_editor",
@@ -12,6 +13,7 @@
         "pinia": "^4.1.0",
         "tailwindcss": "^4.3.5",
         "vue": "^3.5.13",
+        "vue-i18n": "11",
       },
       "devDependencies": {
         "@tauri-apps/cli": "^2",
@@ -38,6 +40,14 @@
     "@emnapi/wasi-threads": ["@emnapi/wasi-threads@2.2.0", "https://registry.npmmirror.com/@emnapi/wasi-threads/-/wasi-threads-2.2.0.tgz", { "dependencies": { "tslib": "^2.4.0" } }, "sha512-JP7OYH38Q7+pyTAe14raZHLQIK7BDKbdwji+Xi3pcd/6QkJYQH3SX4wu6EplGrGJWRepoNzedfm0G3B9Z4e9Rw=="],
 
     "@fortawesome/fontawesome-free": ["@fortawesome/fontawesome-free@7.3.1", "https://registry.npmmirror.com/@fortawesome/fontawesome-free/-/fontawesome-free-7.3.1.tgz", {}, "sha512-wmglKKPDIkgV3aWlZzWECCPoGIkYCulzBwxG9+w7rc5BGapZ6cPMpoPOT8k36J0Ni7PPX6c/rsoMWfS4d1MUMg=="],
+
+    "@intlify/core-base": ["@intlify/core-base@11.4.22", "https://registry.npmmirror.com/@intlify/core-base/-/core-base-11.4.22.tgz", { "dependencies": { "@intlify/devtools-types": "11.4.22", "@intlify/message-compiler": "11.4.22", "@intlify/shared": "11.4.22" } }, "sha512-qEdP+gpuppvC2oKjVr8yZso1E7CuIvArQViule5b6n27ZAQb1QJ7LdiWI7mosMBxNCIobJXw6KBgQWvX7CmHVg=="],
+
+    "@intlify/devtools-types": ["@intlify/devtools-types@11.4.22", "https://registry.npmmirror.com/@intlify/devtools-types/-/devtools-types-11.4.22.tgz", { "dependencies": { "@intlify/core-base": "11.4.22", "@intlify/shared": "11.4.22" } }, "sha512-zRzElvuCD+j8Sv+LQBf1X8Ve7G61gQUw4WwHDbrxoY1+3FrnRZ1kMgWKGDNyG/qMntwa31h+bQZ3sRTkCqrgMQ=="],
+
+    "@intlify/message-compiler": ["@intlify/message-compiler@11.4.22", "https://registry.npmmirror.com/@intlify/message-compiler/-/message-compiler-11.4.22.tgz", { "dependencies": { "@intlify/shared": "11.4.22", "source-map-js": "^1.0.2" } }, "sha512-X3ButMf+8TvO8kks3xA17tglGeiFLwA2S3TkxHxurRLpz8NpDlN2t9pjHdImKtmjruB6B9I+WgkDWz00zDYkTw=="],
+
+    "@intlify/shared": ["@intlify/shared@11.4.22", "https://registry.npmmirror.com/@intlify/shared/-/shared-11.4.22.tgz", {}, "sha512-RHAe7pwIYDt+AkQs9xQBdMLrux7+O4R8p3FKC47ewpEGhKqNzzJ2vkQ4gApAF/LMzj80nRUwIwQDn0uF/sgnqQ=="],
 
     "@jridgewell/gen-mapping": ["@jridgewell/gen-mapping@0.3.13", "https://registry.npmmirror.com/@jridgewell/gen-mapping/-/gen-mapping-0.3.13.tgz", { "dependencies": { "@jridgewell/sourcemap-codec": "^1.5.0", "@jridgewell/trace-mapping": "^0.3.24" } }, "sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA=="],
 
@@ -281,6 +291,8 @@
 
     "vue": ["vue@3.5.45", "https://registry.npmmirror.com/vue/-/vue-3.5.45.tgz", { "dependencies": { "@vue/compiler-dom": "3.5.45", "@vue/compiler-sfc": "3.5.45", "@vue/runtime-dom": "3.5.45", "@vue/server-renderer": "3.5.45", "@vue/shared": "3.5.45" }, "peerDependencies": { "typescript": "*" }, "optionalPeers": ["typescript"] }, "sha512-3cvsib8m9c0vB24+MDKsgcW4+Da4xaBl9Z/5Tbm2pmSIsRPxcil4cdXjXlVsmJ2g64XJo5h+IRd7rsdGT9pZaw=="],
 
+    "vue-i18n": ["vue-i18n@11.4.22", "https://registry.npmmirror.com/vue-i18n/-/vue-i18n-11.4.22.tgz", { "dependencies": { "@intlify/core-base": "11.4.22", "@intlify/devtools-types": "11.4.22", "@intlify/shared": "11.4.22", "@vue/devtools-api": "^6.5.0" }, "peerDependencies": { "vue": "^3.0.0" } }, "sha512-ATfJU6iSSKnUYXubiwH4oScLYIgM2N3KcoqaUD5v5EM2OANePbON7l7CqWsUQhPNHZvszrk9rItqebr8Vo5A5Q=="],
+
     "vue-tsc": ["vue-tsc@3.3.14", "https://registry.npmmirror.com/vue-tsc/-/vue-tsc-3.3.14.tgz", { "dependencies": { "@volar/typescript": "2.4.30", "@vue/language-core": "3.3.14" }, "peerDependencies": { "typescript": ">=5.0.0" }, "bin": { "vue-tsc": "./bin/vue-tsc.js" } }, "sha512-URAu2H9AuMZMg9GCgnqbaHHHd8pBZRAwNV2e2yYS8VDsoTVXHiOSo663OS6DkEvauQ2yixn5TPFJ9WV9QIspkA=="],
 
     "@tailwindcss/oxide-wasm32-wasi/@emnapi/core": ["@emnapi/core@1.11.3", "https://registry.npmmirror.com/@emnapi/core/-/core-1.11.3.tgz", { "dependencies": { "@emnapi/wasi-threads": "1.2.3", "tslib": "^2.4.0" }, "bundled": true }, "sha512-zLpS5asjEb7lq8jYLq37N6XKaE41DIexlY1rF/z4/tIl3wo13Sqm28fRyfIsKZD+NZ8mM5RoKkpW/rBcuoSZSg=="],
@@ -296,5 +308,7 @@
     "@tailwindcss/oxide-wasm32-wasi/tslib": ["tslib@2.9.1", "https://registry.npmmirror.com/tslib/-/tslib-2.9.1.tgz", { "bundled": true }, "sha512-a4Ux9VKuIMHsOS7ENbEq6hK2ZGYIT27Rtl0E4eD9KqwxhKiQeMZE/9xb3IdYwWaSOyIBQLExhQgXDTYoiCxnWA=="],
 
     "@vue/compiler-sfc/magic-string": ["magic-string@0.30.21", "https://registry.npmmirror.com/magic-string/-/magic-string-0.30.21.tgz", { "dependencies": { "@jridgewell/sourcemap-codec": "^1.5.5" } }, "sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ=="],
+
+    "vue-i18n/@vue/devtools-api": ["@vue/devtools-api@6.6.4", "https://registry.npmmirror.com/@vue/devtools-api/-/devtools-api-6.6.4.tgz", {}, "sha512-sGhTPMuXqZ1rVOk32RylztWkfXTRhuS7vgAKv0zjqk8gbsHkJ7xfFf+jbySxt7tWObEJwyKaHMikV/WGDiQm8g=="],
   }
 }

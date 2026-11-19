@@ -4,6 +4,8 @@ import { findMatches } from "./search.ts";
 
 export type JsonType = "string" | "number" | "boolean" | "null" | "object" | "array";
 
+export const JSON_ERROR_EMPTY = "JSON_EMPTY";
+
 export function jsonType(value: unknown): JsonType {
   if (value === null) return "null";
   if (Array.isArray(value)) return "array";
@@ -16,7 +18,7 @@ export type ParseResult = { ok: true; value: unknown } | { ok: false; error: str
 
 export function parseJson(text: string): ParseResult {
   const raw = text.replace(/^\uFEFF/, "").trim();
-  if (!raw) return { ok: false, error: "内容为空" };
+  if (!raw) return { ok: false, error: JSON_ERROR_EMPTY };
   try {
     return { ok: true, value: JSON.parse(raw) };
   } catch (error) {

@@ -3,13 +3,15 @@
     <!-- JSON 无效时的提示 -->
     <div v-if="!parsed.ok" class="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
       <i class="fa-solid fa-triangle-exclamation text-2xl text-amber-500"></i>
-      <p class="text-sm font-medium text-slate-700 dark:text-slate-300">当前内容不是合法的 JSON，无法以树状图编辑</p>
-      <p class="max-w-md text-xs text-slate-500 dark:text-slate-400">{{ parsed.error }}</p>
+      <p class="text-sm font-medium text-slate-700 dark:text-slate-300">{{ t('tree.invalidTitle') }}</p>
+      <p class="max-w-md text-xs text-slate-500 dark:text-slate-400">
+        {{ parsed.error === JSON_ERROR_EMPTY ? t('json.empty') : parsed.error }}
+      </p>
       <button
         class="mt-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-600 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
         @click="emit('request-raw')"
       >
-        切换到「原始文件」修复
+        {{ t('tree.switchToRaw') }}
       </button>
     </div>
 
@@ -29,7 +31,7 @@
           <button
             v-if="row.expandable"
             class="grid h-4 w-4 shrink-0 place-items-center rounded text-slate-400 transition hover:bg-slate-200 hover:text-slate-600 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300"
-            :aria-label="row.expanded ? '折叠' : '展开'"
+            :aria-label="row.expanded ? t('tree.collapse') : t('tree.expand')"
             @click="toggle(row.id)"
           >
             <i
@@ -73,14 +75,14 @@
             <span class="text-slate-400 dark:text-slate-500">{{ row.type === 'array' ? '[' : '{' }}</span>
             <span v-if="!row.expanded" class="text-slate-400 dark:text-slate-500">…</span>
             <span v-if="!row.expanded" class="text-slate-400 dark:text-slate-500">{{ row.type === 'array' ? ']' : '}' }}</span>
-            <span class="ml-1 text-[11px] text-slate-400 dark:text-slate-500">{{ row.size }} 项</span>
+            <span class="ml-1 text-[11px] text-slate-400 dark:text-slate-500">{{ t('tree.items', { count: row.size }) }}</span>
           </template>
 
           <!-- 原始值 -->
           <template v-else-if="isEditing(row, 'value')">
             <DropSelect
               :model-value="editType"
-              :options="TYPE_OPTIONS"
+              :options="typeOptions"
               @update:model-value="setEditType($event as JsonType)"
             />
             <DropSelect
@@ -108,7 +110,7 @@
             />
             <button
               class="grid h-5 w-5 shrink-0 place-items-center rounded text-amber-600 transition hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-500/10"
-              title="确认"
+              :title="t('tree.confirm')"
               @click="commitValue"
             >
               <i class="fa-solid fa-check text-[10px]"></i>
@@ -138,7 +140,7 @@
             <button
               v-if="row.expandable"
               class="grid h-5 w-5 place-items-center rounded text-slate-400 transition hover:bg-slate-200 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300"
-              title="添加"
+              :title="t('tree.add')"
               @click="startAdd(row)"
             >
               <i class="fa-solid fa-plus text-[10px]"></i>
@@ -146,7 +148,7 @@
             <button
               v-if="row.path.length > 0"
               class="grid h-5 w-5 place-items-center rounded text-slate-400 transition hover:bg-red-50 hover:text-red-500 dark:text-slate-500 dark:hover:bg-red-500/10 dark:hover:text-red-400"
-              title="删除"
+              :title="t('tree.delete')"
               @click="remove(row)"
             >
               <i class="fa-solid fa-trash-can text-[10px]"></i>
@@ -164,7 +166,7 @@
           <input
             v-model="adding.key"
             v-focus
-            placeholder="字段名"
+            :placeholder="t('tree.keyPlaceholder')"
             spellcheck="false"
             class="w-32 rounded border border-amber-400 bg-white px-1 py-px text-sky-700 outline-none dark:bg-slate-900 dark:text-sky-300"
             @keydown.enter.prevent="commitAdd"
@@ -174,7 +176,7 @@
           <span class="text-slate-400 dark:text-slate-500">""</span>
           <button
             class="grid h-5 w-5 place-items-center rounded text-amber-600 transition hover:bg-amber-50"
-            title="确认"
+            :title="t('tree.confirm')"
             @click="commitAdd"
           >
             <i class="fa-solid fa-check text-[10px]"></i>
@@ -188,6 +190,7 @@
 <script lang="ts" setup>
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
+import { useI18n } from 'vue-i18n';
 import useStore from '../../store/index.ts';
 import {
   BOOL_OPTIONS,
@@ -195,6 +198,7 @@ import {
   convertValue,
   getAt,
   jsonType,
+  JSON_ERROR_EMPTY,
   parentOf,
   parseJson,
   pathKey,
@@ -205,6 +209,15 @@ import {
 } from '../../utils/json.ts';
 import DropSelect from './DropSelect.vue';
 import { containsQuery } from '../../utils/search.ts';
+
+const { t } = useI18n();
+
+const typeOptions = computed(() =>
+  TYPE_OPTIONS.map((option) => ({
+    ...option,
+    label: t(`types.${option.value}`),
+  })),
+);
 
 const props = defineProps<{
   locate?: { path: JsonPath; token: number } | null;

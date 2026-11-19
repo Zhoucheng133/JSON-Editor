@@ -16,12 +16,12 @@
           <i class="fa-solid fa-file-code text-[10px]"></i>
         </div>
         <span class="max-w-60 shrink-0 truncate text-[12px] font-medium text-slate-800 dark:text-slate-100">
-          {{ name || '未命名' }}
+          {{ name || t('common.untitled') }}
         </span>
         <span
           v-if="dirty"
           class="h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400"
-          title="有未保存的修改"
+          :title="t('edit.unsaved')"
         ></span>
         <span
           class="hidden min-w-0 truncate font-mono text-[11px] text-slate-400 lg:block dark:text-slate-500"
@@ -61,7 +61,7 @@
       <div class="ml-auto flex shrink-0 items-center gap-1">
         <button
           class="grid h-8 w-8 place-items-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:bg-transparent dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 dark:disabled:hover:bg-transparent"
-          title="撤销 (⌘Z)"
+          :title="t('edit.undo', { shortcut: isMac ? '⌘Z' : 'Ctrl+Z' })"
           :disabled="!canUndo"
           @click="undo"
         >
@@ -69,7 +69,7 @@
         </button>
         <button
           class="grid h-8 w-8 place-items-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:bg-transparent dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 dark:disabled:hover:bg-transparent"
-          title="恢复 (⇧⌘Z)"
+          :title="t('edit.redo', { shortcut: isMac ? '⇧⌘Z' : 'Ctrl+Y' })"
           :disabled="!canRedo"
           @click="redo"
         >
@@ -77,14 +77,14 @@
         </button>
         <button
           class="grid h-8 w-8 place-items-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
-          :title="`搜索 (${isMac ? '⌘F' : 'Ctrl+F'})`"
+          :title="t('edit.search', { shortcut: isMac ? '⌘F' : 'Ctrl+F' })"
           @click="openSearch"
         >
           <i class="fa-solid fa-magnifying-glass text-[13px]"></i>
         </button>
         <button
           class="grid h-8 w-8 place-items-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
-          title="格式化"
+          :title="t('edit.format')"
           @click="format"
         >
           <i class="fa-solid fa-indent text-[13px]"></i>
@@ -100,15 +100,15 @@
               : 'bg-linear-to-r from-amber-400 to-amber-500 text-white shadow-sm shadow-amber-500/20 hover:brightness-105'
           "
           :disabled="saving || !dirty"
-          title="保存 (⌘S)"
+          :title="t('edit.save', { shortcut: isMac ? '⌘S' : 'Ctrl+S' })"
           @click="save"
         >
           <i class="fa-solid text-[11px]" :class="saving ? 'fa-spinner animate-spin' : 'fa-floppy-disk'"></i>
-          保存
+          {{ t('common.save') }}
         </button>
         <button
           class="grid h-8 w-8 place-items-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
-          title="关闭文件"
+          :title="t('edit.closeFile')"
           @click="requestClose"
         >
           <i class="fa-solid fa-xmark text-[14px]"></i>
@@ -147,7 +147,7 @@
             ref="searchInputEl"
             v-model="searchQuery"
             spellcheck="false"
-            placeholder="搜索当前视图"
+            :placeholder="t('edit.searchPlaceholder')"
             class="w-52 bg-transparent text-[12px] text-slate-700 outline-none placeholder:text-slate-400 dark:text-slate-200 dark:placeholder:text-slate-500"
             @keydown.enter.prevent="stepSearch($event.shiftKey ? -1 : 1)"
             @keydown.esc.prevent="closeSearch"
@@ -160,7 +160,7 @@
           </span>
           <button
             class="grid h-6 w-6 shrink-0 place-items-center rounded-md text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-200 dark:disabled:hover:bg-transparent"
-            title="上一个 (⇧ Enter)"
+            :title="t('edit.searchPrev')"
             :disabled="searchCount === 0"
             @click="stepSearch(-1)"
           >
@@ -168,7 +168,7 @@
           </button>
           <button
             class="grid h-6 w-6 shrink-0 place-items-center rounded-md text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-200 dark:disabled:hover:bg-transparent"
-            title="下一个 (Enter)"
+            :title="t('edit.searchNext')"
             :disabled="searchCount === 0"
             @click="stepSearch(1)"
           >
@@ -176,7 +176,7 @@
           </button>
           <button
             class="grid h-6 w-6 shrink-0 place-items-center rounded-md text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-200"
-            title="关闭 (Esc)"
+            :title="t('edit.searchClose')"
             @click="closeSearch"
           >
             <i class="fa-solid fa-xmark text-[11px]"></i>
@@ -221,8 +221,9 @@
 <script lang="ts" setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
+import { useI18n } from 'vue-i18n';
 import useStore from '../store/index.ts';
-import { parseJson, stringifyJson, type JsonPath } from '../utils/json.ts';
+import { JSON_ERROR_EMPTY, parseJson, stringifyJson, type JsonPath } from '../utils/json.ts';
 import Tree from './edit_components/Tree.vue';
 import Table from './edit_components/Table.vue';
 import Raw from './edit_components/Raw.vue';
@@ -230,6 +231,7 @@ import Raw from './edit_components/Raw.vue';
 const store = useStore();
 const { path, name, content, dirty, canUndo, canRedo } = storeToRefs(store);
 const { commit, undo, redo, markSaved, closeFile } = store;
+const { t } = useI18n();
 
 const isTauri = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
 const isMac = /Mac|iPhone|iPad/.test(navigator.userAgent);
@@ -237,13 +239,13 @@ const isMac = /Mac|iPhone|iPad/.test(navigator.userAgent);
 const leftPad = isTauri && isMac ? 'pl-[78px]' : 'pl-3';
 const rightPad = isTauri && !isMac ? 'pr-[140px]' : 'pr-3';
 
-const tabs = [
-  { id: 'tree', label: '树状图', icon: 'fa-sitemap' },
-  { id: 'table', label: '表格', icon: 'fa-table' },
-  { id: 'raw', label: '原始文件', icon: 'fa-file-lines' },
-] as const;
+const tabs = computed(() => [
+  { id: 'tree' as const, label: t('edit.tabs.tree'), icon: 'fa-sitemap' },
+  { id: 'table' as const, label: t('edit.tabs.table'), icon: 'fa-table' },
+  { id: 'raw' as const, label: t('edit.tabs.raw'), icon: 'fa-file-lines' },
+]);
 
-const mode = ref<(typeof tabs)[number]['id']>('tree');
+const mode = ref<'tree' | 'table' | 'raw'>('tree');
 const saving = ref(false);
 
 /** 从表格跳转到树状图并定位到指定节点；token 用于重复定位时触发 watch */
@@ -312,10 +314,14 @@ function toast(message: string, type: 'success' | 'error' | 'info' = 'success') 
 }
 
 /* ---------------- 操作 ---------------- */
+function formatParseError(error: string) {
+  return error === JSON_ERROR_EMPTY ? t('json.empty') : error;
+}
+
 async function save() {
   const parsed = parseJson(content.value);
   if (!parsed.ok) {
-    toast(`JSON 格式错误，无法保存：${parsed.error}`, 'error');
+    toast(t('edit.toast.saveInvalid', { error: formatParseError(parsed.error) }), 'error');
     return;
   }
 
@@ -331,7 +337,7 @@ async function save() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     markSaved();
-    toast(`已下载 ${fileName}`);
+    toast(t('edit.toast.downloaded', { name: fileName }));
     return;
   }
 
@@ -342,9 +348,9 @@ async function save() {
     const { invoke } = await import('@tauri-apps/api/core');
     await invoke('save_json_file', { path: path.value, content: content.value });
     markSaved();
-    toast(`已保存到 ${name.value}`);
+    toast(t('edit.toast.saved', { name: name.value }));
   } catch (error) {
-    toast(typeof error === 'string' ? error : ((error as Error)?.message ?? '保存失败'), 'error');
+    toast(typeof error === 'string' ? error : ((error as Error)?.message ?? t('edit.toast.saveFailed')), 'error');
   } finally {
     saving.value = false;
   }
@@ -353,25 +359,25 @@ async function save() {
 function format() {
   const parsed = parseJson(content.value);
   if (!parsed.ok) {
-    toast(`无法格式化：${parsed.error}`, 'error');
+    toast(t('edit.toast.formatInvalid', { error: formatParseError(parsed.error) }), 'error');
     return;
   }
   const next = stringifyJson(parsed.value);
   if (next === content.value) {
-    toast('内容已是格式化状态', 'info');
+    toast(t('edit.toast.alreadyFormatted'), 'info');
     return;
   }
   commit(next);
-  toast('已格式化');
+  toast(t('edit.toast.formatted'));
 }
 
 async function confirmDiscard(message: string) {
   const { ask } = await import('@tauri-apps/plugin-dialog');
-  return ask(message, { title: '未保存的修改', kind: 'warning' });
+  return ask(message, { title: t('edit.dialog.unsavedTitle'), kind: 'warning' });
 }
 
 async function requestClose() {
-  if (dirty.value && isTauri && !(await confirmDiscard('有未保存的修改，确定要关闭吗？'))) return;
+  if (dirty.value && isTauri && !(await confirmDiscard(t('edit.dialog.confirmClose')))) return;
   closeFile();
 }
 
@@ -411,7 +417,7 @@ onMounted(async () => {
   unlistenClose = await appWindow.onCloseRequested(async (event) => {
     if (!dirty.value) return;
     event.preventDefault();
-    if (await confirmDiscard('有未保存的修改，确定要退出吗？')) {
+    if (await confirmDiscard(t('edit.dialog.confirmExit'))) {
       await appWindow.destroy();
     }
   });
