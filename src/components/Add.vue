@@ -22,21 +22,17 @@
       class="absolute top-4 z-20"
       :class="isTauri && !isMac ? 'right-37.5' : 'right-4'"
     >
-      <label class="sr-only" for="locale-select">{{ t('add.lang.label') }}</label>
-      <div class="relative">
-        <select
-          id="locale-select"
-          :value="locale"
-          class="h-8 cursor-pointer appearance-none rounded-lg border border-slate-200 bg-white/90 py-1 pl-2.5 pr-7 text-[12px] text-slate-700 shadow-sm outline-none backdrop-blur transition hover:border-slate-300 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 dark:border-slate-700 dark:bg-slate-900/90 dark:text-slate-200 dark:hover:border-slate-600"
-          @change="onLocaleChange"
-        >
-          <option value="zh-CN">{{ t('add.lang.zhCN') }}</option>
-          <option value="en">{{ t('add.lang.en') }}</option>
-        </select>
-        <i
-          class="fa-solid fa-chevron-down pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[9px] text-slate-400 dark:text-slate-500"
-        ></i>
-      </div>
+      <button
+        ref="langTrigger"
+        type="button"
+        class="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-lg border border-slate-200 bg-white/90 px-2.5 text-[12px] text-slate-700 shadow-sm outline-none backdrop-blur transition hover:border-slate-300 hover:bg-white focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 dark:border-slate-700 dark:bg-slate-900/90 dark:text-slate-200 dark:hover:border-slate-600 dark:hover:bg-slate-900"
+        :aria-label="t('add.lang.label')"
+        @click.stop="toggleLangMenu"
+      >
+        <i class="fa-solid fa-globe text-[11px] text-slate-400 dark:text-slate-500"></i>
+        <span>{{ locale === 'zh-CN' ? t('add.lang.zhCN') : t('add.lang.en') }}</span>
+        <i class="fa-solid fa-chevron-down text-[9px] text-slate-400 dark:text-slate-500"></i>
+      </button>
     </div>
 
     <main class="relative z-10 flex flex-1 items-center justify-center px-6 pb-10">
@@ -239,11 +235,47 @@
       class="hidden"
       @change="onInputChange"
     />
+
+    <Teleport to="body">
+      <Transition name="ctx">
+        <div
+          v-if="langMenuOpen"
+          ref="langMenuEl"
+          class="fixed z-70 min-w-36 overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-xl shadow-slate-900/10 dark:border-slate-700 dark:bg-slate-900 dark:shadow-black/40"
+          :style="{ top: `${langMenuPos.top}px`, left: `${langMenuPos.left}px` }"
+        >
+          <button
+            type="button"
+            class="flex w-full cursor-pointer items-center gap-2 px-2.5 py-1.5 text-left text-[12px] transition hover:bg-slate-50 dark:hover:bg-slate-800"
+            :class="locale === 'zh-CN' ? 'font-medium text-slate-800 dark:text-slate-100' : 'text-slate-600 dark:text-slate-300'"
+            @click="selectLocale('zh-CN')"
+          >
+            <span class="flex-1 whitespace-nowrap">{{ t('add.lang.zhCN') }}</span>
+            <i
+              v-if="locale === 'zh-CN'"
+              class="fa-solid fa-check text-[10px] text-amber-500 dark:text-amber-400"
+            ></i>
+          </button>
+          <button
+            type="button"
+            class="flex w-full cursor-pointer items-center gap-2 px-2.5 py-1.5 text-left text-[12px] transition hover:bg-slate-50 dark:hover:bg-slate-800"
+            :class="locale === 'en' ? 'font-medium text-slate-800 dark:text-slate-100' : 'text-slate-600 dark:text-slate-300'"
+            @click="selectLocale('en')"
+          >
+            <span class="flex-1 whitespace-nowrap">{{ t('add.lang.en') }}</span>
+            <i
+              v-if="locale === 'en'"
+              class="fa-solid fa-check text-[10px] text-amber-500 dark:text-amber-400"
+            ></i>
+          </button>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import useStore from '../store/index.ts';
 import { setLocale, type Locale } from '../i18n';
@@ -278,15 +310,84 @@ const error = ref('');
 
 const shortcutLabel = isMac ? '⌘ O' : 'Ctrl O';
 
+const langTrigger = ref<HTMLElement | null>(null);
+const langMenuEl = ref<HTMLElement | null>(null);
+const langMenuOpen = ref(false);
+const langMenuPos = ref({ top: 0, left: 0 });
+
 let dragDepth = 0;
 let errorTimer: ReturnType<typeof setTimeout> | undefined;
 let unlistenDragDrop: (() => void) | undefined;
 let disposed = false;
 
-function onLocaleChange(e: Event) {
-  const value = (e.target as HTMLSelectElement).value as Locale;
-  setLocale(value);
+function placeLangMenu() {
+  const trigger = langTrigger.value;
+  if (!trigger) return;
+  const rect = trigger.getBoundingClientRect();
+  langMenuPos.value = { top: rect.bottom + 4, left: rect.right - 144 };
 }
+
+function clampLangMenu() {
+  const menu = langMenuEl.value;
+  const trigger = langTrigger.value;
+  if (!menu || !trigger) return;
+  const margin = 8;
+  const tRect = trigger.getBoundingClientRect();
+  const rect = menu.getBoundingClientRect();
+  let left = tRect.right - rect.width;
+  let top = tRect.bottom + 4;
+  left = Math.min(Math.max(margin, left), window.innerWidth - rect.width - margin);
+  top = Math.min(Math.max(margin, top), window.innerHeight - rect.height - margin);
+  langMenuPos.value = { top, left };
+}
+
+async function toggleLangMenu() {
+  if (langMenuOpen.value) {
+    langMenuOpen.value = false;
+    return;
+  }
+  placeLangMenu();
+  langMenuOpen.value = true;
+  await nextTick();
+  clampLangMenu();
+}
+
+function selectLocale(next: Locale) {
+  setLocale(next);
+  langMenuOpen.value = false;
+}
+
+function closeLangMenu() {
+  langMenuOpen.value = false;
+}
+
+function onLangPointerDown(event: PointerEvent) {
+  const target = event.target as Node;
+  if (langTrigger.value?.contains(target) || langMenuEl.value?.contains(target)) return;
+  closeLangMenu();
+}
+
+function onLangKeydown(event: KeyboardEvent) {
+  if (event.key === 'Escape') closeLangMenu();
+}
+
+function onLangReposition() {
+  if (langMenuOpen.value) closeLangMenu();
+}
+
+watch(langMenuOpen, (value) => {
+  if (value) {
+    document.addEventListener('pointerdown', onLangPointerDown, true);
+    document.addEventListener('keydown', onLangKeydown, true);
+    window.addEventListener('scroll', onLangReposition, true);
+    window.addEventListener('resize', onLangReposition);
+  } else {
+    document.removeEventListener('pointerdown', onLangPointerDown, true);
+    document.removeEventListener('keydown', onLangKeydown, true);
+    window.removeEventListener('scroll', onLangReposition, true);
+    window.removeEventListener('resize', onLangReposition);
+  }
+});
 
 const prettyPreview = computed(() => {
   if (!picked.value) return '';
@@ -538,6 +639,10 @@ onBeforeUnmount(() => {
   window.removeEventListener('keydown', onKeydown);
   unlistenDragDrop?.();
   if (errorTimer) clearTimeout(errorTimer);
+  document.removeEventListener('pointerdown', onLangPointerDown, true);
+  document.removeEventListener('keydown', onLangKeydown, true);
+  window.removeEventListener('scroll', onLangReposition, true);
+  window.removeEventListener('resize', onLangReposition);
 });
 </script>
 
@@ -578,5 +683,18 @@ onBeforeUnmount(() => {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
+}
+
+.ctx-enter-active,
+.ctx-leave-active {
+  transition:
+    opacity 0.12s ease,
+    transform 0.12s ease;
+}
+
+.ctx-enter-from,
+.ctx-leave-to {
+  opacity: 0;
+  transform: scale(0.96);
 }
 </style>
