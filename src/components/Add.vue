@@ -190,6 +190,9 @@
         <p class="mt-4 text-center text-[11px] text-slate-400 dark:text-slate-500">
           支持 .json 文件 · 单文件最大 {{ MAX_SIZE_MB }} MB
         </p>
+        <p v-if="!isTauri" class="mt-1 text-center text-[11px] text-slate-400 dark:text-slate-500">
+          本网站不会存储你上传的任何文件
+        </p>
       </section>
     </main>
 
