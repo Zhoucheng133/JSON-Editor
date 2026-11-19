@@ -8,7 +8,6 @@
 </template>
 
 <script lang="ts" setup>
-import { getCurrentWindow } from '@tauri-apps/api/window';
 import { onMounted } from 'vue';
 import store from './store';
 import { storeToRefs } from 'pinia';
@@ -23,6 +22,7 @@ const isTauri = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window
 onMounted(async () => {
   // 窗口默认隐藏，等前端挂载完成后再显示，避免出现白屏闪烁
   if (!isTauri) return;
+  const { getCurrentWindow } = await import('@tauri-apps/api/window');
   await getCurrentWindow().show();
 });
 </script>

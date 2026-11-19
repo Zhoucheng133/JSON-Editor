@@ -313,17 +313,29 @@ function toast(message: string, type: 'success' | 'error' | 'info' = 'success') 
 
 /* ---------------- 操作 ---------------- */
 async function save() {
-  if (!isTauri) {
-    toast('浏览器预览模式暂不支持保存', 'error');
-    return;
-  }
-  if (!path.value) return;
-
   const parsed = parseJson(content.value);
   if (!parsed.ok) {
     toast(`JSON 格式错误，无法保存：${parsed.error}`, 'error');
     return;
   }
+
+  if (!isTauri) {
+    const fileName = name.value || 'data.json';
+    const blob = new Blob([content.value], { type: 'application/json;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    markSaved();
+    toast(`已下载 ${fileName}`);
+    return;
+  }
+
+  if (!path.value) return;
 
   saving.value = true;
   try {
