@@ -5,6 +5,8 @@
 > [!NOTE]
 > 本项目主要由 **Vibe Coding** 完成，如果存在问题，欢迎提交 Issue 或 PR。
 
+你可以直接访问[GitHub Pages](https://zhoucheng133.github.io/JSON-Editor/)的演示页面
+
 ## 截图
 
 <img src="screenshots/screenshot1.png" width=600 />
